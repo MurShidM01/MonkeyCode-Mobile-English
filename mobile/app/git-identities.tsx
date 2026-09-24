@@ -88,7 +88,7 @@ export default function GitIdentitiesScreen() {
             setError('');
           } catch (e) {
             // 后端 409：被项目占用
-            Alert.alert('无法Remove', e instanceof ApiError ? e.message : '请稍后重试');
+            Alert.alert('Unable to remove', e instanceof ApiError ? e.message : '请稍后重试');
           }
         },
       },
@@ -117,9 +117,9 @@ export default function GitIdentitiesScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.tx3} />}
         >
           {identities.length === 0 && error ? (
-            <EmptyView icon="alert" title="加载失败" subtitle={`${error}\nPull down to retry`} />
+            <EmptyView icon="alert" title="Failed to load" subtitle={`${error}\nPull down to retry`} />
           ) : identities.length === 0 ? (
-            <EmptyView icon="key" title="No Git accounts yet" subtitle={'绑定 GitHub / GitLab / Gitee 等账号后\n即可创建项目，让 AI 拉取与提交代码'} />
+            <EmptyView icon="key" title="No Git accounts yet" subtitle={'Link GitHub, GitLab, Gitee, or another account\nthen create projects and let AI pull and commit code'} />
           ) : (
             <>
               {error ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 12, marginBottom: 10 }}>Refresh failed:{error}</Text> : null}
@@ -140,10 +140,10 @@ export default function GitIdentitiesScreen() {
 
       <GlassNav title="Git accounts" onBack={() => router.back()} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label="添加 Git accounts" icon="plus" onPress={() => setAdding(true)} />
+        <PrimaryButton block label="Add Git account" icon="plus" onPress={() => setAdding(true)} />
       </View>
 
-      <PickerSheet visible={adding} title="添加 Git accounts" options={addOptions} onPick={onPickAdd} onClose={() => setAdding(false)} />
+      <PickerSheet visible={adding} title="Add Git account" options={addOptions} onPick={onPickAdd} onClose={() => setAdding(false)} />
     </View>
   );
 }
