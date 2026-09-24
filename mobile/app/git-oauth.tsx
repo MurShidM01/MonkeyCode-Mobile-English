@@ -126,7 +126,7 @@ export default function GitOAuthScreen() {
           <Pressable onPress={close} hitSlop={8} style={{ padding: 8 }}>
             <Icons.back size={22} color={t.tx} sw={2} />
           </Pressable>
-          <Text numberOfLines={1} style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx, marginHorizontal: 2 }}>绑定 {label}</Text>
+          <Text numberOfLines={1} style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx, marginHorizontal: 2 }}>Link {label}</Text>
           <Pressable onPress={copyUrl} hitSlop={6} style={({ pressed }) => [{ padding: 7 }, pressed && { opacity: 0.5 }]}>
             <Icons.copy size={18} color={t.tx2} sw={1.9} />
           </Pressable>
