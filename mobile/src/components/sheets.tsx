@@ -49,7 +49,7 @@ function SheetShell({ title, subtitle, onClose, action, children }: { title: str
   );
 }
 
-export function ModelSheet({ visible, models, selectedId, onPick, onClose, title = '选择模型', plan }: {
+export function ModelSheet({ visible, models, selectedId, onPick, onClose, title = 'Select model', plan }: {
   visible: boolean; models: Model[]; selectedId?: string; onPick: (id: string) => void; onClose: () => void; title?: string;
   /** 会员等级（subscription.plan）：高于该等级的内置分组不展示 */
   plan?: string;
@@ -88,7 +88,7 @@ export function ModelSheet({ visible, models, selectedId, onPick, onClose, title
             </View>
           );
         })}
-        {groups.length === 0 ? <Text style={{ textAlign: 'center', color: t.tx3, paddingVertical: 24 }}>暂无可用模型</Text> : null}
+        {groups.length === 0 ? <Text style={{ textAlign: 'center', color: t.tx3, paddingVertical: 24 }}>No models available</Text> : null}
       </SheetShell>
     </Modal>
   );
@@ -100,7 +100,7 @@ export function SkillSheet({ visible, commands, onPick, onClose }: {
   const t = useTheme();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <SheetShell title="使用技能" onClose={onClose}>
+      <SheetShell title="Use skill" onClose={onClose}>
         {commands.map((c) => (
           <Pressable key={c.name} onPress={() => onPick(c.name)} style={({ pressed }) => [{ paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12 }, pressed && { backgroundColor: t.acGhost }]}>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
@@ -113,7 +113,7 @@ export function SkillSheet({ visible, commands, onPick, onClose }: {
             {c.description ? <Text numberOfLines={2} style={{ fontSize: 13, color: t.tx3, marginTop: 3, lineHeight: 18 }}>{c.description}</Text> : null}
           </Pressable>
         ))}
-        {commands.length === 0 ? <Text style={{ textAlign: 'center', color: t.tx3, paddingVertical: 28 }}>当前没有可用指令</Text> : null}
+        {commands.length === 0 ? <Text style={{ textAlign: 'center', color: t.tx3, paddingVertical: 28 }}>No commands available</Text> : null}
       </SheetShell>
     </Modal>
   );
@@ -126,8 +126,8 @@ export function PreviewSheet({ visible, ports, refreshing, activeUrl, onOpen, on
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <SheetShell
-        title="在线预览"
-        subtitle="开发环境正在监听的端口"
+        title="Live preview"
+        subtitle="Ports currently listening in the development environment"
         onClose={onClose}
         action={
           <Pressable onPress={onRefresh} hitSlop={8} style={{ padding: 6 }}>
@@ -138,13 +138,13 @@ export function PreviewSheet({ visible, ports, refreshing, activeUrl, onOpen, on
         {ports.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: 30, gap: 10 }}>
             <Icons.server size={26} color={t.tx3} sw={1.6} />
-            <Text style={{ color: t.tx3, fontSize: 13 }}>开发环境中没有发现正在监听的端口</Text>
+            <Text style={{ color: t.tx3, fontSize: 13 }}>No listening ports found in the development environment</Text>
           </View>
         ) : (
           ports.slice().sort((a, b) => (a.access_url ? 0 : 1) - (b.access_url ? 0 : 1) || (a.port ?? 0) - (b.port ?? 0)).map((p) => {
             const url = p.access_url || '';
             const canAccess = !!url;
-            const active = canAccess && !!activeUrl && url === activeUrl; // 当前正在预览的端口
+            const active = canAccess && !!activeUrl && url === activeUrl; // 当前正在预览的Port
             return (
               <View key={`${p.port}-${p.forward_id ?? ''}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 13, backgroundColor: active ? t.acGhost : t.bg3, borderWidth: 1, borderColor: active ? t.acLine : 'transparent', marginBottom: 8 }}>
                 <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: active ? t.ac : t.bg4, alignItems: 'center', justifyContent: 'center' }}>
@@ -152,16 +152,16 @@ export function PreviewSheet({ visible, ports, refreshing, activeUrl, onOpen, on
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.tx }}>端口 {p.port}</Text>
-                    {active ? <View style={{ paddingHorizontal: 7, paddingVertical: 1.5, borderRadius: 99, backgroundColor: t.ac }}><Text style={{ fontSize: 10, fontWeight: '800', color: t.acInk }}>预览中</Text></View> : null}
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.tx }}>Port {p.port}</Text>
+                    {active ? <View style={{ paddingHorizontal: 7, paddingVertical: 1.5, borderRadius: 99, backgroundColor: t.ac }}><Text style={{ fontSize: 10, fontWeight: '800', color: t.acInk }}>Previewing</Text></View> : null}
                   </View>
                   <Text numberOfLines={1} style={{ fontSize: 11.5, color: t.tx3, marginTop: 2, fontFamily: canAccess ? 'monospace' : undefined }}>
-                    {canAccess ? url : (p.error_message || '暂不可访问')}
+                    {canAccess ? url : (p.error_message || 'Temporarily unavailable')}
                   </Text>
                 </View>
                 {canAccess ? (
                   <Pressable onPress={() => onOpen(url)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99, backgroundColor: active ? t.acGhost : t.ac, borderWidth: active ? 1 : 0, borderColor: t.acLine }}>
-                    <Text style={{ color: active ? t.acTx : t.acInk, fontSize: 13, fontWeight: '600' }}>{active ? '回到' : '访问'}</Text>
+                    <Text style={{ color: active ? t.acTx : t.acInk, fontSize: 13, fontWeight: '600' }}>{active ? 'Return' : 'Open'}</Text>
                     <Icons.arrowRight size={14} color={active ? t.acTx : t.acInk} sw={2.2} />
                   </Pressable>
                 ) : null}
@@ -176,7 +176,7 @@ export function PreviewSheet({ visible, ports, refreshing, activeUrl, onOpen, on
 
 /**
  * 文本选择面板：倒置消息列表里原生选中不可用，长按消息时弹出此面板，
- * 在正常（非倒置）层里逐词选中复制，或一键复制全部。
+ * 在正常（非倒置）层里逐词选中复制，或一键Copy all。
  */
 export function CopySheet({ visible, text, onClose, onCopyAll }: {
   visible: boolean; text: string; onClose: () => void; onCopyAll: (text: string) => void;
@@ -185,13 +185,13 @@ export function CopySheet({ visible, text, onClose, onCopyAll }: {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <SheetShell
-        title="选择文本"
-        subtitle="长按选词复制，或点右上角复制全部"
+        title="Select text"
+        subtitle="Long-press to select and copy, or tap the top-right button to copy all"
         onClose={onClose}
         action={
           <Pressable onPress={() => onCopyAll(text)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 11, borderRadius: 10, backgroundColor: t.acGhost }}>
             <Icons.copy size={14} color={t.acTx} />
-            <Text style={{ color: t.acTx, fontSize: 13.5, fontWeight: '600' }}>复制全部</Text>
+            <Text style={{ color: t.acTx, fontSize: 13.5, fontWeight: '600' }}>Copy all</Text>
           </Pressable>
         }
       >
@@ -209,7 +209,7 @@ export function CopySheet({ visible, text, onClose, onCopyAll }: {
 }
 
 /**
- * 手动输入仓库地址对话框：在「选择仓库」列表里点「手动输入仓库地址」后弹出，
+ * Enter repository URL manually对话框：在「选择仓库」列表里点「Enter repository URL manually」后弹出，
  * 让用户直接填写 Git 仓库地址（无需先在后台创建项目）。居中弹窗 + 键盘避让，
  * 避免被软键盘遮挡。
  */
@@ -229,8 +229,8 @@ export function RepoUrlSheet({ visible, initialUrl, onConfirm, onClose }: {
 
   const confirm = () => {
     const v = url.trim();
-    if (!v) { setErr('请输入仓库地址'); return; }
-    if (!/^(https?:\/\/|ssh:\/\/|git@)/i.test(v)) { setErr('请输入有效的 Git 地址（http(s):// 或 git@）'); return; }
+    if (!v) { setErr('Enter repository URL'); return; }
+    if (!/^(https?:\/\/|ssh:\/\/|git@)/i.test(v)) { setErr('Enter a valid Git URL (http(s):// or git@)'); return; }
     onConfirm(v);
   };
 
@@ -241,8 +241,8 @@ export function RepoUrlSheet({ visible, initialUrl, onConfirm, onClose }: {
       <KeyboardAvoidingView behavior="padding" style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }} pointerEvents="box-none">
           <View style={{ width: '100%', backgroundColor: t.bg2, borderRadius: 22, borderWidth: 1, borderColor: t.line2, padding: 20, ...t.shLift }}>
-            <Text style={{ color: t.tx, fontSize: 17, fontWeight: '700' }}>手动输入仓库地址</Text>
-            <Text style={{ color: t.tx3, fontSize: 12.5, marginTop: 4, marginBottom: 14 }}>填写 Git 仓库地址，任务将基于该仓库运行</Text>
+            <Text style={{ color: t.tx, fontSize: 17, fontWeight: '700' }}>Enter repository URL manually</Text>
+            <Text style={{ color: t.tx3, fontSize: 12.5, marginTop: 4, marginBottom: 14 }}>Enter a Git repository URL. The task will run against this repository</Text>
             <TextInput
               ref={inputRef}
               value={url}
@@ -262,7 +262,7 @@ export function RepoUrlSheet({ visible, initialUrl, onConfirm, onClose }: {
                 <Text style={{ color: t.tx2, fontSize: 15, fontWeight: '600' }}>取消</Text>
               </Pressable>
               <Pressable onPress={confirm} style={({ pressed }) => [{ flex: 1, paddingVertical: 13, borderRadius: 13, alignItems: 'center', backgroundColor: t.ac }, pressed && { opacity: 0.85 }]}>
-                <Text style={{ color: t.acInk, fontSize: 15, fontWeight: '700' }}>确定</Text>
+                <Text style={{ color: t.acInk, fontSize: 15, fontWeight: '700' }}>Confirm</Text>
               </Pressable>
             </View>
           </View>
