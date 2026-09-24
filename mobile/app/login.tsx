@@ -350,7 +350,7 @@ export default function LoginScreen() {
       startBaizhiBridge('Douyin sign-in', targetBaseUrl, undefined, true);
     } catch (e) {
       if ((e as { code?: string })?.code === 'E_DOUYIN_CANCELLED') return;
-      setError(formatError(e, '抖音Sign-in failed. Please try again.'));
+      setError(formatError(e, 'Douyin sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -372,7 +372,7 @@ export default function LoginScreen() {
       setWebOAuthKey((k) => k + 1);
       setView('oauthWeb');
     } catch (e) {
-      setError(formatError(e, '打开 GitHub Sign-in failed. Please try again.'));
+      setError(formatError(e, 'Could not open GitHub sign-in. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -405,12 +405,12 @@ export default function LoginScreen() {
       const targetBaseUrl = await applyServerSettings();
       const prepared = await prepareAlipayAppBaizhiLogin();
       const result = await authorizeAlipay(prepared.authInfo, prepared.requestId, prepared.expiresAt);
-      setPhase('正在完成Alipay sign-in…');
+      setPhase('Completing Alipay sign-in…');
       await finishAlipayAppLogin(result.code, prepared.requestId, targetBaseUrl);
     } catch (e) {
       if ((e as { code?: string })?.code === 'E_ALIPAY_CANCELLED') return;
       await clearPendingAlipayAuthorization().catch(() => undefined);
-      setError(formatError(e, '打开支付宝Sign-in failed. Please try again.'));
+      setError(formatError(e, 'Could not open Alipay sign-in. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -428,13 +428,13 @@ export default function LoginScreen() {
         if (!active || !pending) return;
         setError('');
         setBusy(true);
-        setPhase('正在恢复Alipay sign-in…');
+        setPhase('Restoring Alipay sign-in…');
         const targetBaseUrl = await applyServerSettings();
         await finishAlipayAppLogin(pending.code, pending.requestId, targetBaseUrl);
       } catch (e) {
         await clearPendingAlipayAuthorization().catch(() => undefined);
         if (active && (e as { code?: string })?.code !== 'E_ALIPAY_CANCELLED') {
-          setError(formatError(e, '支付宝Sign-in failed. Please try again.'));
+          setError(formatError(e, 'Alipay sign-in failed. Please try again.'));
         }
       } finally {
         if (active) {
@@ -872,7 +872,7 @@ export default function LoginScreen() {
               <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>For private or offline deployments, enter your server URL here.</Text>
 
               <Text style={{ fontSize: 13, color: t.tx2, marginTop: 16, marginBottom: 8 }}>Basic Auth (optional)</Text>
-              <TextInput value={basicAuthInput} onChangeText={setBasicAuthInput} placeholder="用户名:密码" placeholderTextColor={t.tx3}
+              <TextInput value={basicAuthInput} onChangeText={setBasicAuthInput} placeholder="username:password" placeholderTextColor={t.tx3}
                 autoCapitalize="none" autoCorrect={false} editable={!busy && !codeBusy} style={fieldStyle('basic')} {...focusProps('basic')} />
               <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>For test environments using HTTP Basic Auth, enter “username:password”; it will be sent in the Authorization header.</Text>
             </View>
