@@ -9,8 +9,9 @@ import { obtainCaptchaToken } from '@/api/captcha';
 import type { InvitationItem, Subscription, Wallet } from '@/api/types';
 import { useAuth } from '@/auth/AuthContext';
 import { Icons } from '@/components/Icons';
-import { BigTitle, Card, GlassTop, MonkeyLogo, Pill, Row, Toast } from '@/components/ui';
+import { BigTitle, Card, GlassTop, MonkeyLogo, PickerSheet, Pill, Row, Toast } from '@/components/ui';
 import { ACCENTS, ACCENT_KEYS, spacing, useTheme, useThemePrefs, type Theme, type ThemeMode } from '@/theme';
+import { LANGUAGE_OPTIONS, useI18n } from '@/i18n';
 
 
 const THEME_OPTIONS: { k: ThemeMode; label: string }[] = [
@@ -21,6 +22,8 @@ const THEME_OPTIONS: { k: ThemeMode; label: string }[] = [
 
 function Appearance({ t }: { t: Theme }) {
   const { mode, accent, setMode, setAccent } = useThemePrefs();
+  const { language, setLanguage } = useI18n();
+  const [languageOpen, setLanguageOpen] = useState(false);
   return (
     <Card style={{ padding: 16 }}>
       <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 12 }}>Appearance</Text>
@@ -51,6 +54,17 @@ function Appearance({ t }: { t: Theme }) {
           );
         })}
       </View>
+
+      <Text style={{ fontSize: 13.5, fontWeight: '600', color: t.tx, marginTop: 16, marginBottom: 9 }}>Language</Text>
+      <Row icon="globe" label="Language" value={LANGUAGE_OPTIONS.find((o) => o.key === language)?.label ?? 'English'} onPress={() => setLanguageOpen(true)} />
+      <PickerSheet
+        visible={languageOpen}
+        title="Select language"
+        options={LANGUAGE_OPTIONS.map((o) => ({ key: o.key, title: o.label }))}
+        selected={language}
+        onPick={(key) => { void setLanguage(key as typeof language); setLanguageOpen(false); }}
+        onClose={() => setLanguageOpen(false)}
+      />
     </Card>
   );
 }
