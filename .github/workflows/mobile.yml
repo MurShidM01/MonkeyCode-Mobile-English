@@ -148,6 +148,30 @@ jobs:
           path: mobile/monkeycode-${{ github.ref_name }}.apk
           if-no-files-found: error
 
+  publish-debug-release:
+    name: Publish latest debug APK
+    needs: android-debug
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download debug APK
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-app-${{ github.sha }}
+          path: release
+      - name: Rename APK
+        run: cp release/app-debug.apk release/debug-app.apk
+      - name: Publish latest debug prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view debug --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload debug release/debug-app.apk --repo "${GITHUB_REPOSITORY}" --clobber
+          else
+            gh release create debug release/debug-app.apk --repo "${GITHUB_REPOSITORY}" --title "MonkeyCode Mobile Debug" --notes "Latest debug APK from the main branch. Updated automatically after mobile changes." --prerelease
+          fi
+
   publish-release:
     name: Publish GitHub Release
     needs: [android-debug, android-release]
