@@ -38,7 +38,7 @@ export default function ProjectsScreen() {
       setCursor(res.nextCursor);
       setHasMore(res.hasMore && !!res.nextCursor);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败');
+      setError(e instanceof ApiError ? e.message : 'Failed to load');
       if (mode !== 'more') setProjects([]);
     } finally {
       loadingRef.current = false;
@@ -65,9 +65,9 @@ export default function ProjectsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载Projects…" />
+        <LoadingView label="Loading projects…" />
       ) : error && projects.length === 0 ? (
-        <EmptyView title="加载失败" subtitle={error} icon="alert" />
+        <EmptyView title="Failed to load" subtitle={error} icon="alert" />
       ) : (
         <FlatList
           data={projects}
@@ -81,11 +81,11 @@ export default function ProjectsScreen() {
           ListHeaderComponent={
             <View style={{ paddingBottom: 14, flexDirection: 'row', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
-                <BigTitle title="Projects" sub={projects.length ? `共 ${projects.length}${hasMore ? '+' : ''} 个Projects` : undefined} />
+                <BigTitle title="Projects" sub={projects.length ? `${projects.length}${hasMore ? '+' : ''} projects` : undefined} />
               </View>
               <Pressable onPress={() => router.push('/new-project')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: 14, borderRadius: 99, backgroundColor: t.acGhost, marginRight: spacing.pad, marginTop: 14 }, pressed && { opacity: 0.6 }]}>
                 <Icons.plus size={16} color={t.acTx} sw={2.4} />
-                <Text style={{ color: t.acTx, fontSize: 13.5, fontWeight: '700' }}>新建</Text>
+                <Text style={{ color: t.acTx, fontSize: 13.5, fontWeight: '700' }}>New</Text>
               </Pressable>
             </View>
           }
@@ -97,15 +97,15 @@ export default function ProjectsScreen() {
           onEndReachedThreshold={0.4}
           ListEmptyComponent={
             <View style={{ paddingTop: 40 }}>
-              <EmptyView title="暂无Projects" subtitle="Link Git 身份并关联仓库后，即可创建Projects" icon="folder" />
+              <EmptyView title="No projects yet" subtitle="Link a Git account and repository to create projects" icon="folder" />
               <View style={{ paddingHorizontal: spacing.pad, marginTop: 18 }}>
-                <PrimaryButton block label="新建Projects" icon="plus" onPress={() => router.push('/new-project')} />
+                <PrimaryButton block label="New project" icon="plus" onPress={() => router.push('/new-project')} />
               </View>
             </View>
           }
           ListFooterComponent={
             loadingMore ? <View style={{ paddingVertical: 20, alignItems: 'center' }}><ActivityIndicator color={t.ac} /></View>
-              : !hasMore && projects.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>没有更多了</Text>
+              : !hasMore && projects.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>No more</Text>
               : null
           }
         />
