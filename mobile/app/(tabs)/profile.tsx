@@ -14,18 +14,18 @@ import { ACCENTS, ACCENT_KEYS, spacing, useTheme, useThemePrefs, type Theme, typ
 
 
 const THEME_OPTIONS: { k: ThemeMode; label: string }[] = [
-  { k: 'system', label: '跟随系统' },
-  { k: 'light', label: '浅色' },
-  { k: 'dark', label: '深色' },
+  { k: 'system', label: 'System' },
+  { k: 'light', label: 'Light' },
+  { k: 'dark', label: 'Dark' },
 ];
 
 function Appearance({ t }: { t: Theme }) {
   const { mode, accent, setMode, setAccent } = useThemePrefs();
   return (
     <Card style={{ padding: 16 }}>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 12 }}>外观</Text>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 12 }}>Appearance</Text>
 
-      <Text style={{ fontSize: 13.5, fontWeight: '600', color: t.tx, marginBottom: 9 }}>主题</Text>
+      <Text style={{ fontSize: 13.5, fontWeight: '600', color: t.tx, marginBottom: 9 }}>Theme</Text>
       <View style={{ flexDirection: 'row', backgroundColor: t.bg3, borderRadius: 12, padding: 3 }}>
         {THEME_OPTIONS.map((o) => {
           const on = mode === o.k;
@@ -37,7 +37,7 @@ function Appearance({ t }: { t: Theme }) {
         })}
       </View>
 
-      <Text style={{ fontSize: 13.5, fontWeight: '600', color: t.tx, marginTop: 16, marginBottom: 11 }}>点缀色</Text>
+      <Text style={{ fontSize: 13.5, fontWeight: '600', color: t.tx, marginTop: 16, marginBottom: 11 }}>Accent color</Text>
       <View style={{ flexDirection: 'row', gap: 16 }}>
         {ACCENT_KEYS.map((k) => {
           const a = ACCENTS[k];
@@ -57,13 +57,13 @@ function Appearance({ t }: { t: Theme }) {
 
 // 产品相关入口（开源、AI 编程助手 MonkeyCode）
 const ABOUT_LINKS: { icon: string; label: string; sub: string; url: string }[] = [
-  { icon: 'globe', label: '官方网站', sub: 'monkeycode-ai.com', url: 'https://monkeycode-ai.com' },
-  { icon: 'file', label: '帮助文档', sub: 'monkeycode.docs.baizhi.cloud', url: 'https://monkeycode.docs.baizhi.cloud/' },
-  { icon: 'github', label: 'GitHub 开源仓库', sub: 'chaitin/MonkeyCode', url: 'https://github.com/chaitin/MonkeyCode' },
+  { icon: 'globe', label: 'Official website', sub: 'monkeycode-ai.com', url: 'https://monkeycode-ai.com' },
+  { icon: 'file', label: 'Documentation', sub: 'monkeycode.docs.baizhi.cloud', url: 'https://monkeycode.docs.baizhi.cloud/' },
+  { icon: 'github', label: 'GitHub repository', sub: 'chaitin/MonkeyCode', url: 'https://github.com/chaitin/MonkeyCode' },
 ];
 
 function About({ t }: { t: Theme }) {
-  // 应用版本 = 原生安装包版本（来自安装包，与 OTA 无关）。对用户只有「版本」一个概念。
+  // 应用版本 = 原生安装包版本（来自安装包，与 OTA 无关）。对User只有「版本」一个概念。
   const appVersion = installedAppVersion();
   // OTA 版本号(更新 id 短码)作为构建标识附在版本后面，便于排查当前跑的是哪一份。
   const otaId = currentOtaId();
@@ -75,11 +75,11 @@ function About({ t }: { t: Theme }) {
     setOtaBusy('downloading');
     void downloadAndApplyOta().catch(() => {
       setOtaBusy(null);
-      Alert.alert('更新失败', '下载失败，请检查网络后重试。');
+      Alert.alert('Update failed', 'Download failed. Check your network connection and try again.');
     });
   }, []);
 
-  // 统一的检查更新：先看有没有新的原生版本（新安装包）→ 引导去装；否则再看 OTA → 直接更新。
+  // 统一的Check for updates：先看有没有新的原生版本（新安装包）→ 引导去装；否则再看 OTA → 直接更新。
   const onCheck = useCallback(async () => {
     if (otaBusy) return;
     setOtaBusy('checking');
@@ -87,33 +87,33 @@ function About({ t }: { t: Theme }) {
     const app = await checkAppUpdate();
     if (app) {
       setOtaBusy(null);
-      Alert.alert('发现新版本', `新版本 v${app.version} 可用，需前往下载安装新版本。`, [
-        { text: '稍后', style: 'cancel' },
-        { text: '去更新', onPress: () => { if (app.url) open(app.url); } },
+      Alert.alert('Update available', `新版本 v${app.version} 可用，需前往下载安装新版本。`, [
+        { text: 'Later', style: 'cancel' },
+        { text: 'Update', onPress: () => { if (app.url) open(app.url); } },
       ]);
       return;
     }
-    // 2) 原生已是最新 → 看 OTA（对用户就是「更新」，不提热更新）
+    // 2) 原生Up to date → 看 OTA（对User就是「更新」，不提热更新）
     const r = await checkOta();
     setOtaBusy(null);
-    if (r.status === 'disabled') { Alert.alert('检查更新', '开发模式下不可用，正式包才会检查更新。'); return; }
-    // error（OTA 服务未上线/网络异常，拿不到有效数据）视为已是最新，不向用户报错
-    if (r.status === 'error' || r.status === 'none') { Alert.alert('已是最新', `当前已是最新版本 ${verLine}。`); return; }
-    Alert.alert('发现新版本', '有新版本可用，是否立即更新？\n（更新后将自动重启）', [
-      { text: '取消', style: 'cancel' },
-      { text: '立即更新', onPress: applyOtaNow },
+    if (r.status === 'disabled') { Alert.alert('Check for updates', '开发模式下不可用，正式包才会Check for updates。'); return; }
+    // error（OTA 服务未上线/网络异常，拿不到有效数据）视为Up to date，不向User报错
+    if (r.status === 'error' || r.status === 'none') { Alert.alert('Up to date', `当前Up to date版本 ${verLine}。`); return; }
+    Alert.alert('Update available', 'A new version is available. Update now?\n(The app will restart after updating.)', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Update now', onPress: applyOtaNow },
     ]);
   }, [otaBusy, applyOtaNow, verLine]);
   return (
     <Card style={{ padding: 16 }}>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 13 }}>关于</Text>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 13 }}>About</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={[{ width: 46, height: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: t.dark ? t.bg3 : '#fff' }, t.shCard]}>
           <MonkeyLogo size={36} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontSize: 16, fontWeight: '800', color: t.tx }}>MonkeyCode</Text>
-          <Text style={{ fontSize: 12.5, color: t.tx3, marginTop: 2 }}>开源 AI 编程助手 · 长亭科技</Text>
+          <Text style={{ fontSize: 12.5, color: t.tx3, marginTop: 2 }}>Open-source AI coding assistant · Chaitin</Text>
         </View>
       </View>
       <View style={{ marginTop: 14, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line }}>
@@ -133,9 +133,9 @@ function About({ t }: { t: Theme }) {
         <Pressable onPress={onCheck} disabled={!!otaBusy} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line }, pressed && { opacity: 0.55 }]}>
           <Icons.refresh size={18} color={t.tx2} sw={1.8} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 14.5, color: t.tx, fontWeight: '500' }}>检查更新</Text>
+            <Text style={{ fontSize: 14.5, color: t.tx, fontWeight: '500' }}>Check for updates</Text>
             <Text numberOfLines={1} style={{ fontSize: 11.5, color: t.tx3, marginTop: 1 }}>
-              {otaBusy === 'checking' ? '正在检查…' : otaBusy === 'downloading' ? '正在下载更新…' : `当前版本 ${verLine}`}
+              {otaBusy === 'checking' ? 'Checking…' : otaBusy === 'downloading' ? 'Downloading update…' : `Current version ${verLine}`}
             </Text>
           </View>
           {otaBusy ? <ActivityIndicator size="small" color={t.tx3} /> : <Icons.arrowRight size={15} color={t.tx3} sw={2} />}
@@ -176,8 +176,8 @@ function BindEmailSheet({
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={{ backgroundColor: t.bg2, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line2, paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 16 }}>
           <View style={{ width: 38, height: 4, borderRadius: 99, backgroundColor: t.line2, alignSelf: 'center', marginTop: 10, marginBottom: 14 }} />
-          <Text style={{ fontSize: 18, fontWeight: '800', color: t.tx }}>绑定邮箱</Text>
-          <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600', marginTop: 18, marginBottom: 8 }}>邮箱地址</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: t.tx }}>Link email</Text>
+          <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600', marginTop: 18, marginBottom: 8 }}>Email address</Text>
           <TextInput
             value={email}
             onChangeText={onChangeEmail}
@@ -208,7 +208,7 @@ function BindEmailSheet({
               disabled={busy}
               style={({ pressed }) => [{ flex: 1, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg3 }, pressed && { opacity: 0.65 }, busy && { opacity: 0.5 }]}
             >
-              <Text style={{ color: t.tx2, fontSize: 14.5, fontWeight: '700' }}>取消</Text>
+              <Text style={{ color: t.tx2, fontSize: 14.5, fontWeight: '700' }}>Cancel</Text>
             </Pressable>
             <Pressable
               onPress={onSubmit}
@@ -216,7 +216,7 @@ function BindEmailSheet({
               style={({ pressed }) => [{ flex: 1.45, height: 46, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: t.ac }, pressed && { transform: [{ scale: 0.98 }] }, (busy || !email.trim()) && { opacity: 0.45 }]}
             >
               {busy ? <ActivityIndicator size="small" color={t.acInk} /> : <Icons.mail size={16} color={t.acInk} sw={2.1} />}
-              <Text style={{ color: t.acInk, fontSize: 14.5, fontWeight: '800' }}>发送验证邮件</Text>
+              <Text style={{ color: t.acInk, fontSize: 14.5, fontWeight: '800' }}>Send verification email</Text>
             </Pressable>
           </View>
         </View>
@@ -235,9 +235,9 @@ function normalizePlan(plan?: string): PlanKey {
   return 'basic';
 }
 function planLabel(plan?: string): string {
-  if (plan === 'ultra' || plan === 'flagship') return '旗舰会员';
-  if (plan === 'pro') return '专业会员';
-  return '基础会员';
+  if (plan === 'ultra' || plan === 'flagship') return 'Flagship member';
+  if (plan === 'pro') return 'Pro member';
+  return 'Basic member';
 }
 function fmtTokens(v: number): string {
   if (v >= 1_000_000) return `${(Math.floor(v / 100_000) / 10).toFixed(1)}M`;
@@ -258,7 +258,7 @@ function QuotaBar({ name, total, remaining, t }: { name: string; total: number; 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <Text style={{ fontSize: 14, fontWeight: '600', color: t.tx }}>{name}</Text>
         <Text style={{ fontSize: 12, color: empty ? t.tx3 : t.tx2, fontFamily: 'monospace' }}>
-          {empty ? '无额度' : `剩余 ${fmtTokens(remaining)} / ${fmtTokens(total)}`}
+          {empty ? '无额度' : `${fmtTokens(remaining)} / ${fmtTokens(total)} remaining`}
         </Text>
       </View>
       <View style={{ height: 6, borderRadius: 99, backgroundColor: t.track, overflow: 'hidden' }}>
@@ -280,7 +280,7 @@ function CheckinButton({ checkedIn, busy, onPress, t }: { checkedIn: boolean | n
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 15, borderRadius: 99, backgroundColor: t.bg3 }}>
         <Icons.checkCircle size={15} color={t.acTx} sw={2} />
-        <Text style={{ color: t.tx2, fontSize: 13.5, fontWeight: '700' }}>今日已签到</Text>
+        <Text style={{ color: t.tx2, fontSize: 13.5, fontWeight: '700' }}>Checked in today</Text>
       </View>
     );
   }
@@ -288,7 +288,7 @@ function CheckinButton({ checkedIn, busy, onPress, t }: { checkedIn: boolean | n
   return (
     <Pressable onPress={onPress} disabled={busy} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 16, borderRadius: 99, backgroundColor: t.ac }, pressed && { transform: [{ scale: 0.96 }] }, busy && { opacity: 0.7 }]}>
       {busy ? <ActivityIndicator size="small" color={t.acInk} /> : <Icons.calendar size={15} color={t.acInk} sw={2} />}
-      <Text style={{ color: t.acInk, fontSize: 13.5, fontWeight: '700' }}>{busy ? '签到中' : `签到 +${CHECKIN_REWARD}`}</Text>
+      <Text style={{ color: t.acInk, fontSize: 13.5, fontWeight: '700' }}>{busy ? 'Checking in…' : `Check in +${CHECKIN_REWARD}`}</Text>
     </Pressable>
   );
 }
@@ -362,7 +362,7 @@ export default function ProfileScreen() {
     if (bindingEmail) return;
     const nextEmail = bindEmail.trim();
     if (!EMAIL_RE.test(nextEmail)) {
-      Alert.alert('邮箱格式不正确', '请输入有效的邮箱地址。');
+      Alert.alert('Invalid email', '请输入有效的Email address。');
       return;
     }
 
@@ -371,9 +371,9 @@ export default function ProfileScreen() {
       await sendBindEmailVerification(nextEmail);
       setBindEmailOpen(false);
       setBindEmail('');
-      Alert.alert('验证邮件已发送', `请前往 ${nextEmail} 查收验证邮件，完成验证后邮箱会显示在本页。`);
+      Alert.alert('Verification email sent', `Check ${nextEmail} for the verification email. Your email will appear here after verification.`);
     } catch (e) {
-      Alert.alert('绑定邮箱失败', e instanceof Error && e.message ? e.message : '请稍后重试');
+      Alert.alert('Link email失败', e instanceof Error && e.message ? e.message : '请Later重试');
     } finally {
       setBindingEmail(false);
     }
@@ -386,34 +386,34 @@ export default function ProfileScreen() {
       const token = await obtainCaptchaToken(baseUrl); // 签到需 captcha_token（与登录同一套 PoW）
       await submitCheckin(token);
       setCheckedIn(true);
-      showToast(`签到成功，+${CHECKIN_REWARD} 积分`);
+      showToast(`Check-in successful, +${CHECKIN_REWARD} credits`);
       getWallet().then((w) => { if (w) setWallet(w); }).catch(() => undefined);
     } catch (e) {
-      showToast(e instanceof Error && e.message ? e.message : '签到失败，请重试');
+      showToast(e instanceof Error && e.message ? e.message : 'Check-in failed. Please try again.');
     } finally {
       setCheckingIn(false);
     }
   }, [checkingIn, checkedIn, baseUrl, showToast]);
 
   const onLogout = () => {
-    Alert.alert('退出登录', '确定要退出当前账号吗？', [
-      { text: '取消', style: 'cancel' },
-      // 退出后导航交给根布局鉴权守卫（authenticated 变 false 自动回登录页），避免二次跳转/卸载后 setState
-      { text: '退出', style: 'destructive', onPress: async () => { setBusy(true); await logout(); } },
+    Alert.alert('Sign out', 'Are you sure you want to sign out of this account?', [
+      { text: 'Cancel', style: 'cancel' },
+      // Sign out后导航交给根布局鉴权守卫（authenticated 变 false 自动回登录页），避免二次跳转/卸载后 setState
+      { text: 'Sign out', style: 'destructive', onPress: async () => { setBusy(true); await logout(); } },
     ]);
   };
 
-  // 注销账号（App Store Guideline 5.1.1(v) 要求 App 内可删除账号）。两步确认防误触。
+  // Delete account（App Store Guideline 5.1.1(v) 要求 App 内可删除账号）。两步确认防误触。
   const onDeleteAccount = () => {
-    Alert.alert('注销账号', '注销后，你的账号及全部数据将被永久删除，无法恢复；Apple 登录的授权也会一并撤销。', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert('Delete account', 'Deleting your account permanently removes your account and all data and cannot be undone. Your Apple authorization will also be revoked.', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: '继续',
+        text: 'Continue',
         style: 'destructive',
-        onPress: () => Alert.alert('确认永久删除？', '此操作不可撤销。', [
-          { text: '取消', style: 'cancel' },
+        onPress: () => Alert.alert('Confirm permanent deletion?', 'This action cannot be undone.', [
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: '永久删除',
+            text: 'Delete permanently',
             style: 'destructive',
             onPress: async () => {
               setBusy(true);
@@ -422,7 +422,7 @@ export default function ProfileScreen() {
                 // 成功后不手动跳转、也不复位 busy：authenticated 置 false 会触发根布局守卫回登录页，本屏随即卸载
               } catch (e) {
                 setBusy(false);
-                Alert.alert('注销失败', e instanceof Error && e.message ? e.message : '请稍后重试。如多次失败，请通过官网联系我们处理。');
+                Alert.alert('Account deletion failed', e instanceof Error && e.message ? e.message : '请Later重试。如多次失败，请通过官网联系我们处理。');
               }
             },
           },
@@ -431,7 +431,7 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const name = user?.name || user?.username || user?.email || '用户';
+  const name = user?.name || user?.username || user?.email || 'User';
   const email = user?.email || '';
   const avatarUrl = resolveAssetUrl(user?.avatar_url || user?.avatar);
   useEffect(() => { setAvatarBroken(false); }, [avatarUrl]);
@@ -458,7 +458,7 @@ export default function ProfileScreen() {
         onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; setCollapsed((c) => (c !== y > 26 ? y > 26 : c)); }}
         scrollEventThrottle={16}
       >
-        <BigTitle title="我的" />
+        <BigTitle title="Profile" />
 
         <View style={{ paddingHorizontal: spacing.pad, paddingTop: 12, gap: spacing.gap }}>
           {/* identity */}
@@ -473,15 +473,15 @@ export default function ProfileScreen() {
               <View style={{ marginTop: 7, gap: 5 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, minWidth: 0 }}>
                   <Icons.mail size={13} color={t.tx3} sw={1.8} />
-                  <Text numberOfLines={1} style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>{email || '未绑定邮箱'}</Text>
+                  <Text numberOfLines={1} style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>{email || '未Link email'}</Text>
                   {!email ? (
                     <Pressable onPress={() => setBindEmailOpen(true)} hitSlop={8} style={({ pressed }) => [{ paddingHorizontal: 4, paddingVertical: 2 }, pressed && { opacity: 0.55 }]}>
-                      <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>绑定</Text>
+                      <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>Link</Text>
                     </Pressable>
                   ) : null}
                 </View>
                 {user?.id ? (
-                  <Pressable onPress={() => copy(user.id!, '用户 ID 已复制')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start' }, pressed && { opacity: 0.55 }]}>
+                  <Pressable onPress={() => copy(user.id!, 'User ID 已复制')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start' }, pressed && { opacity: 0.55 }]}>
                     <Icons.copy size={13} color={t.tx3} sw={1.8} />
                     <Text style={{ fontSize: 12.5, color: t.tx3, fontFamily: 'monospace' }}>{maskUserId(user.id)}</Text>
                   </Pressable>
@@ -495,7 +495,7 @@ export default function ProfileScreen() {
             {/* 第一行：余额 + 签到（主行动） */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>积分余额</Text>
+                <Text style={{ fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>Credit balance</Text>
                 {loadingWallet
                   ? <ActivityIndicator size="small" color={t.tx3} style={{ alignSelf: 'flex-start', marginTop: 4 }} />
                   : <Text style={{ fontSize: 24, fontWeight: '800', color: t.acTx, fontFamily: 'monospace', letterSpacing: -0.5 }}>{credits}</Text>}
@@ -510,50 +510,50 @@ export default function ProfileScreen() {
                 <Text style={{ fontSize: 11.5, color: t.tx3, marginTop: 1 }}>每邀请一位 +{INVITE_REWARD.toLocaleString('zh-CN')} 积分</Text>
               </View>
               {inviteLink ? (
-                <Pressable onPress={() => copy(inviteLink, '邀请链接已复制，分享给好友')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 13, borderRadius: 99, backgroundColor: t.acGhost }, pressed && { opacity: 0.6 }]}>
+                <Pressable onPress={() => copy(inviteLink, 'Invite link copied. Share it with a friend')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 13, borderRadius: 99, backgroundColor: t.acGhost }, pressed && { opacity: 0.6 }]}>
                   <Icons.copy size={13} color={t.acTx} sw={2} />
-                  <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>邀请好友</Text>
+                  <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>Invite friends</Text>
                 </Pressable>
               ) : null}
             </View>
           </Card>
 
-          {/* 会员 + 今日额度 */}
+          {/* Membership + today’s quota */}
           <Card style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <Pill color={t.acTx} bg={t.acGhost} style={{ height: 26 }}>
                 <Icons.crown size={14} color={t.acTx} sw={1.9} />
                 <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>{planLabel(subscription?.plan)}</Text>
               </Pill>
-              <Text style={{ fontSize: 12.5, color: t.tx3 }}>{expiry ? `有效期至 ${expiry}` : '长期有效'}</Text>
+              <Text style={{ fontSize: 12.5, color: t.tx3 }}>{expiry ? `Valid until ${expiry}` : 'No expiration'}</Text>
             </View>
-            <Text style={{ paddingTop: 8, paddingBottom: 2, fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5 }}>今日额度</Text>
-            <QuotaBar name="免费模型" total={dailyTokenLimit} remaining={dailyTokenRemaining} t={t} />
+            <Text style={{ paddingTop: 8, paddingBottom: 2, fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5 }}>Today’s quota</Text>
+            <QuotaBar name="Free models" total={dailyTokenLimit} remaining={dailyTokenRemaining} t={t} />
           </Card>
 
           {/* 代码仓库与模型管理入口 */}
           <Card style={{ paddingTop: 14, paddingBottom: 2 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, paddingHorizontal: 16, marginBottom: 2 }}>集成</Text>
-            <Row icon="git" label="Git 账号" value="绑定代码仓库凭证" onPress={() => router.push('/git-identities')} />
-            <Row icon="brain" label="自定义模型" value="接入自己的大模型" divider onPress={() => router.push('/models')} />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, paddingHorizontal: 16, marginBottom: 2 }}>Integrations</Text>
+            <Row icon="git" label="Git account" value="Link代码仓库凭证" onPress={() => router.push('/git-identities')} />
+            <Row icon="brain" label="Custom models" value="Connect your own AI model" divider onPress={() => router.push('/models')} />
           </Card>
 
-          {/* 外观：主题 + 点缀色 */}
+          {/* Appearance：Theme + Accent color */}
           <Appearance t={t} />
 
-          {/* 关于：产品信息 + 官网/文档/开源仓库 */}
+          {/* About：产品信息 + 官网/文档/开源仓库 */}
           <About t={t} />
 
           {/* logout */}
           <Pressable onPress={onLogout} disabled={busy} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingVertical: 15, borderRadius: 18, backgroundColor: t.bg2 }, t.shCard, pressed && { opacity: 0.7 }]}>
             <Icons.logout size={19} color={t.red} sw={1.9} />
-            <Text style={{ color: t.red, fontSize: 15.5, fontWeight: '600' }}>退出登录</Text>
+            <Text style={{ color: t.red, fontSize: 15.5, fontWeight: '600' }}>Sign out</Text>
           </Pressable>
-          {/* 注销账号：Apple 登录的配套能力（审核要求支持建号必须支持删号），
+          {/* Delete account：Apple 登录的配套能力（审核要求支持建号必须支持删号），
               只对 Apple 登录的会话显示；其余账号体系不在 App 内删号，后端同样拦截 */}
           {appleSession ? (
             <Pressable onPress={onDeleteAccount} disabled={busy} style={({ pressed }) => [{ alignItems: 'center', paddingVertical: 10 }, pressed && { opacity: 0.6 }]}>
-              <Text style={{ color: t.tx3, fontSize: 13 }}>注销账号</Text>
+              <Text style={{ color: t.tx3, fontSize: 13 }}>Delete account</Text>
             </Pressable>
           ) : null}
 
@@ -561,7 +561,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      <GlassTop title="我的" collapsed={collapsed} />
+      <GlassTop title="Profile" collapsed={collapsed} />
       <BindEmailSheet visible={bindEmailOpen} email={bindEmail} busy={bindingEmail} onChangeEmail={setBindEmail} onClose={closeBindEmail} onSubmit={handleBindEmail} />
       {toast ? <Toast text={toast} bottom={insets.bottom + 116} /> : null}
     </View>
