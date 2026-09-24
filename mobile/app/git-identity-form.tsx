@@ -72,7 +72,7 @@ export default function GitIdentityFormScreen() {
       })
       .catch((e) => {
         if (!active) return;
-        Alert.alert('Failed to load', e instanceof ApiError ? e.message : '请稍后重试');
+        Alert.alert('Failed to load', e instanceof ApiError ? e.message : 'Please try again later');
         leave();
       });
     return () => { active = false; };
