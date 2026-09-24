@@ -436,7 +436,7 @@ export default function ProfileScreen() {
                 // 成功后不手动跳转、也不复位 busy：authenticated 置 false 会触发根布局守卫回登录页，本屏随即卸载
               } catch (e) {
                 setBusy(false);
-                Alert.alert('Account deletion failed', e instanceof Error && e.message ? e.message : '请Later重试。如多次失败，请通过官网联系我们处理。');
+                Alert.alert('Account deletion failed', e instanceof Error && e.message ? e.message : 'Please try again later. If the problem persists, contact us through the official website.');
               }
             },
           },
@@ -520,8 +520,8 @@ export default function ProfileScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 14, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line }}>
               <InviteeStack items={invitees} t={t} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>已邀请 {inviteCount} 人</Text>
-                <Text style={{ fontSize: 11.5, color: t.tx3, marginTop: 1 }}>每邀请一位 +{INVITE_REWARD.toLocaleString('zh-CN')} 积分</Text>
+                <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>Invited {inviteCount} people</Text>
+                <Text style={{ fontSize: 11.5, color: t.tx3, marginTop: 1 }}>+{INVITE_REWARD.toLocaleString('en-US')} credits per invite</Text>
               </View>
               {inviteLink ? (
                 <Pressable onPress={() => copy(inviteLink, 'Invite link copied. Share it with a friend')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 13, borderRadius: 99, backgroundColor: t.acGhost }, pressed && { opacity: 0.6 }]}>
@@ -548,7 +548,7 @@ export default function ProfileScreen() {
           {/* 代码仓库与模型管理入口 */}
           <Card style={{ paddingTop: 14, paddingBottom: 2 }}>
             <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, paddingHorizontal: 16, marginBottom: 2 }}>Integrations</Text>
-            <Row icon="git" label="Git account" value="Link代码仓库凭证" onPress={() => router.push('/git-identities')} />
+            <Row icon="git" label="Git account" value="Repository credentials" onPress={() => router.push('/git-identities')} />
             <Row icon="brain" label="Custom models" value="Connect your own AI model" divider onPress={() => router.push('/models')} />
           </Card>
 
