@@ -374,7 +374,7 @@ function ThoughtBlock({ text, t, onCopy }: { text: string; t: Theme; onCopy?: (s
   );
 }
 
-// ── 错误块：默认折叠（最多 6 行），完整错误可能很长（堆栈）→ 点击展开 / 长按复制 ──────
+// ── 错误块：默认折叠（最多 6 行），完整错误可能很长（堆栈）→ 点击展开 / long-press to copy ──────
 function ErrorBlock({ text, t, onCopy }: { text: string; t: Theme; onCopy?: (s: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const long = text.length > 200 || text.split('\n').length > 6;
@@ -384,7 +384,7 @@ function ErrorBlock({ text, t, onCopy }: { text: string; t: Theme; onCopy?: (s: 
       <Icons.alert size={16} color={t.red} sw={1.9} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={long && !expanded ? 6 : undefined} style={{ color: t.red, fontSize: 13.5, lineHeight: 20 }}>{text}</Text>
-        {long ? <Text style={{ color: t.red, opacity: 0.75, fontSize: 11.5, fontWeight: '700', marginTop: 7 }}>{expanded ? 'Collapse' : 'Expand full error'} · 长按复制</Text> : null}
+        {long ? <Text style={{ color: t.red, opacity: 0.75, fontSize: 11.5, fontWeight: '700', marginTop: 7 }}>{expanded ? 'Collapse' : 'Expand full error'} · long-press to copy</Text> : null}
       </View>
     </Pressable>
   );
@@ -681,13 +681,13 @@ function AskBlock({ askId, status, questions, canAnswer, answerSubmitState, onAn
           <Text style={{ color: t.acInk, fontSize: 14, fontWeight: '700' }}>Submit answer</Text>
         </Pressable>
       ) : expired ? (
-        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>Question expired（可在下方直接输入消息）</Text>
+        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>Question expired (you can enter a message below)</Text>
       ) : !answered && submitState === 'queued' ? (
         <Text style={{ color: t.amber, fontSize: 11.5 }}>The answer will be sent automatically when the network is restored</Text>
       ) : !answered && submitState === 'sent' ? (
         <Text style={{ color: t.tx3, fontSize: 11.5 }}>Answer sent, waiting for processing</Text>
       ) : !answered && status !== 'pending' ? (
-        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>该提问已失效（可在下方直接输入消息）</Text>
+        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>This question is no longer valid (you can enter a message below)</Text>
       ) : null}
     </View>
   );
