@@ -151,12 +151,12 @@ export default function LoginScreen() {
   const baizhiBridgeRef = useRef<BaizhiBridgeState | null>(null);
   const alipayCompletingRef = useRef('');
 
-  // 手机号 / 支付宝 / 抖音 / GitHub 登录入口只在官方云展示；私有化 / 自定义地址保持账号密码入口。
+  // 手机号 / 支付宝 / 抖音 / GitHub sign-in入口只在官方云展示；私有化 / 自定义地址保持账号密码入口。
   const cloud = norm(serverUrl || baseUrl) === DEFAULT_BASE_URL;
   const [view, setView] = useState<LoginView>('password');
 
   // Sign in with Apple（App Store Guideline 4.8：提供第三方登录时必须有等效的 Apple 登录）。
-  // 仅 iOS 且系统支持时展示；官方云和自定义服务地址（如测试环境）都可用，
+  // 仅 iOS 且系统支持时展示；官方云and自定义服务地址（如测试环境）都可用，
   // 后端未开启 Apple 登录时按返回的 404 给出明确提示。
   const [appleAvailable, setAppleAvailable] = useState(false);
   useEffect(() => {
@@ -178,7 +178,7 @@ export default function LoginScreen() {
 
   const ensureAgreed = () => {
     if (agreed) return true;
-    setError('请先阅读并同意《用户协议》和《隐私政策》');
+    setError('Please read and agree to the User Agreement and Privacy Policy first.');
     return false;
   };
 
@@ -251,7 +251,7 @@ export default function LoginScreen() {
     baizhiBridgeDoneRef.current = true;
     setError('');
     setBusy(true);
-    setPhase('正在完成登录…');
+    setPhase('Completing sign-in…');
     try {
       await finishBaizhiOAuthLogin(bridge.targetBaseUrl, bridge.phoneToSave);
     } catch (e) {
@@ -263,7 +263,7 @@ export default function LoginScreen() {
       setWebOAuthTitle('');
       setWebOAuthMode('github');
       setView(bridge.phoneToSave ? 'phone' : 'password');
-      setError(formatError(e, '登录失败，请重试'));
+      setError(formatError(e, 'Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -275,14 +275,14 @@ export default function LoginScreen() {
     handledGithubCallbackRef.current = true;
     setError('');
     setBusy(true);
-    setPhase('正在完成 GitHub 登录…');
+    setPhase('Completing GitHub sign-in…');
     try {
       const targetBaseUrl = await applyServerSettings();
-      startBaizhiBridge('GitHub 登录', targetBaseUrl);
+      startBaizhiBridge('GitHub sign-in', targetBaseUrl);
     } catch (e) {
       handledGithubCallbackRef.current = false;
       setView('password');
-      setError(formatError(e, 'GitHub 登录失败，请重试'));
+      setError(formatError(e, 'GitHub Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -306,7 +306,7 @@ export default function LoginScreen() {
     setError('');
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在登录…');
+    setPhase('Signing in…');
     try {
       await applyServerSettings();
       const credential = await AppleAuthentication.signInAsync({
@@ -315,7 +315,7 @@ export default function LoginScreen() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
-      if (!credential.identityToken) throw new Error('未获取到 Apple 登录凭证');
+      if (!credential.identityToken) throw new Error('Apple sign-in credential was not returned');
       // full_name 仅首次授权时下发，给后端建号用；邮箱后端只信 identity token 里的 claim，不另传
       const fullName = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(' ');
       await loginWithApple({
@@ -327,10 +327,10 @@ export default function LoginScreen() {
     } catch (e) {
       if ((e as { code?: string })?.code === 'ERR_REQUEST_CANCELED') return; // 用户取消，不算错误
       if (e instanceof ApiError && (e.status === 404 || e.code === 10002)) {
-        setError('当前服务器未开启 Apple 登录');
+        setError('Apple sign-in is not enabled on this server');
         return;
       }
-      setError(formatError(e, 'Apple 登录失败，请重试'));
+      setError(formatError(e, 'Apple Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -341,16 +341,16 @@ export default function LoginScreen() {
     setError('');
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在打开抖音…');
+    setPhase('Opening Douyin…');
     try {
       const targetBaseUrl = await applyServerSettings();
       const result = await authorizeDouyin();
-      setPhase('正在完成抖音登录…');
+      setPhase('Completing Douyin sign-in…');
       await startDouyinAppBaizhiLogin(result.code);
-      startBaizhiBridge('抖音登录', targetBaseUrl, undefined, true);
+      startBaizhiBridge('Douyin sign-in', targetBaseUrl, undefined, true);
     } catch (e) {
       if ((e as { code?: string })?.code === 'E_DOUYIN_CANCELLED') return;
-      setError(formatError(e, '抖音登录失败，请重试'));
+      setError(formatError(e, '抖音Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -361,18 +361,18 @@ export default function LoginScreen() {
     setError('');
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在打开 GitHub…');
+    setPhase('Opening GitHub…');
     try {
       await applyServerSettings();
       const authorizeUrl = await getBaizhiOAuthLoginUrl('github', GITHUB_CALLBACK_URL);
       handledGithubCallbackRef.current = false;
       setWebOAuthMode('github');
-      setWebOAuthTitle('GitHub 登录');
+      setWebOAuthTitle('GitHub sign-in');
       setWebOAuthUrl(authorizeUrl);
       setWebOAuthKey((k) => k + 1);
       setView('oauthWeb');
     } catch (e) {
-      setError(formatError(e, '打开 GitHub 登录失败，请重试'));
+      setError(formatError(e, '打开 GitHub Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -390,7 +390,7 @@ export default function LoginScreen() {
         setView('phone');
         return;
       }
-      startBaizhiBridge('支付宝登录', targetBaseUrl, undefined, true);
+      startBaizhiBridge('Alipay sign-in', targetBaseUrl, undefined, true);
     } finally {
       alipayCompletingRef.current = '';
     }
@@ -400,17 +400,17 @@ export default function LoginScreen() {
     setError('');
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在打开支付宝…');
+    setPhase('Opening Alipay…');
     try {
       const targetBaseUrl = await applyServerSettings();
       const prepared = await prepareAlipayAppBaizhiLogin();
       const result = await authorizeAlipay(prepared.authInfo, prepared.requestId, prepared.expiresAt);
-      setPhase('正在完成支付宝登录…');
+      setPhase('正在完成Alipay sign-in…');
       await finishAlipayAppLogin(result.code, prepared.requestId, targetBaseUrl);
     } catch (e) {
       if ((e as { code?: string })?.code === 'E_ALIPAY_CANCELLED') return;
       await clearPendingAlipayAuthorization().catch(() => undefined);
-      setError(formatError(e, '打开支付宝登录失败，请重试'));
+      setError(formatError(e, '打开支付宝Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -428,13 +428,13 @@ export default function LoginScreen() {
         if (!active || !pending) return;
         setError('');
         setBusy(true);
-        setPhase('正在恢复支付宝登录…');
+        setPhase('正在恢复Alipay sign-in…');
         const targetBaseUrl = await applyServerSettings();
         await finishAlipayAppLogin(pending.code, pending.requestId, targetBaseUrl);
       } catch (e) {
         await clearPendingAlipayAuthorization().catch(() => undefined);
         if (active && (e as { code?: string })?.code !== 'E_ALIPAY_CANCELLED') {
-          setError(formatError(e, '支付宝登录失败，请重试'));
+          setError(formatError(e, '支付宝Sign-in failed. Please try again.'));
         }
       } finally {
         if (active) {
@@ -453,17 +453,17 @@ export default function LoginScreen() {
 
   const onPasswordSubmit = async () => {
     setError('');
-    if (!email.trim() || !password.trim()) { setError('请输入邮箱和密码'); return; }
+    if (!email.trim() || !password.trim()) { setError('Enter your email and password'); return; }
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在登录…');
+    setPhase('Signing in…');
     try {
       const targetBaseUrl = await applyServerSettings();
       await login(email, password, targetBaseUrl);
       setPhase('');
       // 导航交给根布局的鉴权守卫（会清栈进入主界面），避免登录页残留在返回栈里
     } catch (e) {
-      setError(formatError(e, '登录失败，请重试'));
+      setError(formatError(e, 'Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -473,14 +473,14 @@ export default function LoginScreen() {
   const onSendCode = async () => {
     setError('');
     const cleanPhone = phone.trim();
-    if (!phoneValid(cleanPhone)) { setError('请输入有效的手机号'); return; }
+    if (!phoneValid(cleanPhone)) { setError('Enter a valid phone number'); return; }
     if (!ensureAgreed()) return;
     setCodeBusy(true);
     try {
       await sendBaizhiPhoneCode(cleanPhone, oauthPhoneToken || undefined);
       setCountdown(60);
     } catch (e) {
-      setError(formatError(e, '验证码发送失败，请稍后重试'));
+      setError(formatError(e, 'Failed to send verification code. Please try again later.'));
     } finally {
       setCodeBusy(false);
     }
@@ -490,11 +490,11 @@ export default function LoginScreen() {
     setError('');
     const cleanPhone = phone.trim();
     const cleanCode = code.trim();
-    if (!phoneValid(cleanPhone)) { setError('请输入有效的手机号'); return; }
-    if (!/^\d{4,6}$/.test(cleanCode)) { setError('请输入短信验证码'); return; }
+    if (!phoneValid(cleanPhone)) { setError('Enter a valid phone number'); return; }
+    if (!/^\d{4,6}$/.test(cleanCode)) { setError('Enter the SMS verification code'); return; }
     if (!ensureAgreed()) return;
     setBusy(true);
-    setPhase('正在登录…');
+    setPhase('Signing in…');
     try {
       const targetBaseUrl = await applyServerSettings();
       if (oauthPhoneToken) {
@@ -503,9 +503,9 @@ export default function LoginScreen() {
       } else {
         await startBaizhiPhoneLogin(cleanPhone, cleanCode);
       }
-      startBaizhiBridge('手机号登录', targetBaseUrl, cleanPhone, true);
+      startBaizhiBridge('Phone sign-in', targetBaseUrl, cleanPhone, true);
     } catch (e) {
-      setError(formatError(e, '登录失败，请重试'));
+      setError(formatError(e, 'Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -529,11 +529,11 @@ export default function LoginScreen() {
     if (!bridge || baizhiBridgeDoneRef.current) return;
     setError('');
     setBusy(true);
-    setPhase('正在确认授权…');
+    setPhase('Confirming authorization…');
     try {
       const res = await fetch(apiUrl, { credentials: 'include', redirect: 'follow' });
       if (!res.ok) {
-        throw new ApiError(await readResponseError(res, `百智云授权失败（${res.status}）`), undefined, res.status);
+        throw new ApiError(await readResponseError(res, `BaiZhiCloud authorization failed (${res.status})`), undefined, res.status);
       }
       await finishBaizhiBridgeLogin();
     } catch (e) {
@@ -545,7 +545,7 @@ export default function LoginScreen() {
       setWebOAuthTitle('');
       setWebOAuthMode('github');
       setView(bridge.phoneToSave ? 'phone' : 'password');
-      setError(formatError(e, '登录失败，请重试'));
+      setError(formatError(e, 'Sign-in failed. Please try again.'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -561,7 +561,7 @@ export default function LoginScreen() {
     if (baizhiBridgeRef.current?.authorizeViaFetch) {
       void authorizeBaizhiWithNativeSession(apiUrl);
     } else {
-      setPhase('正在确认授权…');
+      setPhase('Confirming authorization…');
       setWebOAuthUrl(apiUrl);
       setWebOAuthKey((k) => k + 1);
     }
@@ -637,7 +637,7 @@ export default function LoginScreen() {
     <>
       <View style={{ marginTop: 22, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ flex: 1, height: 1, backgroundColor: '#E1E0DA' }} />
-        <Text style={{ color: softText, fontSize: 12, fontWeight: '600' }}>其它登录方式</Text>
+        <Text style={{ color: softText, fontSize: 12, fontWeight: '600' }}>Other sign-in methods</Text>
         <View style={{ flex: 1, height: 1, backgroundColor: '#E1E0DA' }} />
       </View>
 
@@ -660,16 +660,16 @@ export default function LoginScreen() {
 
         {cloud ? (
           <>
-            <Pressable accessibilityRole="button" accessibilityLabel="手机号登录" onPress={() => { setError(''); setView('phone'); }} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Phone sign-in" onPress={() => { setError(''); setView('phone'); }} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
               <Icons.phoneDevice size={22} color="#20231F" />
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="支付宝登录" onPress={onAlipayLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Alipay sign-in" onPress={onAlipayLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
               <Icons.alipayBrand size={24} />
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="抖音登录" onPress={onDouyinLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Douyin sign-in" onPress={onDouyinLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
               <Icons.douyinBrand size={24} />
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="GitHub 登录" onPress={onGithubLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="GitHub sign-in" onPress={onGithubLogin} disabled={actionBusy} style={({ pressed }) => [{ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#E7E6E0', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }, pressed && { opacity: 0.78 }, actionBusy && { opacity: 0.55 }]}>
               <Icons.github size={22} color="#16171A" />
             </Pressable>
           </>
@@ -684,10 +684,10 @@ export default function LoginScreen() {
         {agreed ? <Icons.check size={12} color="#FFFFFF" sw={3} /> : null}
       </Pressable>
       <Text style={{ flex: 1, fontSize: 12.5, color: mutedText, lineHeight: 19, fontWeight: '600' }}>
-        我已阅读并同意
-        <Text onPress={() => openDoc('/user-agreement')} style={{ color: heroGreen, fontWeight: '700' }}>《用户协议》</Text>
-        和
-        <Text onPress={() => openDoc('/privacy-policy')} style={{ color: heroGreen, fontWeight: '700' }}>《隐私政策》</Text>
+        I have read and agree to
+        <Text onPress={() => openDoc('/user-agreement')} style={{ color: heroGreen, fontWeight: '700' }}>“User Agreement”</Text>
+        and
+        <Text onPress={() => openDoc('/privacy-policy')} style={{ color: heroGreen, fontWeight: '700' }}>“Privacy Policy”</Text>
       </Text>
     </View>
   );
@@ -706,7 +706,7 @@ export default function LoginScreen() {
             <Pressable onPress={closeWebOAuth} hitSlop={8} style={{ padding: 8 }}>
               <Icons.back size={22} color={t.tx} sw={2} />
             </Pressable>
-            <Text numberOfLines={1} style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx, marginHorizontal: 2 }}>{webOAuthTitle || '授权登录'}</Text>
+            <Text numberOfLines={1} style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx, marginHorizontal: 2 }}>{webOAuthTitle || 'Authorized sign-in'}</Text>
             <View style={{ width: 38 }} />
           </View>
         </View>
@@ -733,7 +733,7 @@ export default function LoginScreen() {
             <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: t.dark ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.82)' }}>
               <View style={[{ backgroundColor: t.bg2, borderRadius: 18, paddingVertical: 22, paddingHorizontal: 26, alignItems: 'center', gap: 12, minWidth: 200 }, t.shCard]}>
                 <ActivityIndicator color={t.ac} />
-                <Text style={{ color: t.tx2, fontSize: 14 }}>{phase || '正在完成登录…'}</Text>
+                <Text style={{ color: t.tx2, fontSize: 14 }}>{phase || 'Completing sign-in…'}</Text>
               </View>
             </View>
           ) : null}
@@ -753,19 +753,19 @@ export default function LoginScreen() {
           </Pressable>
           <View>
             <Text style={{ fontSize: 24, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0 }}>MonkeyCode</Text>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.82)', marginTop: 2, letterSpacing: 1 }}>智能开发平台</Text>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.82)', marginTop: 2, letterSpacing: 1 }}>AI development platform</Text>
           </View>
         </View>
 
-        <Text style={{ marginTop: 32, fontSize: 30, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0 }}>欢迎回来 👋</Text>
-        <Text style={{ marginTop: 8, fontSize: 14.5, fontWeight: '500', color: 'rgba(255,255,255,0.85)' }}>登录以继续你的智能开发之旅</Text>
+        <Text style={{ marginTop: 32, fontSize: 30, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0 }}>Welcome back 👋</Text>
+        <Text style={{ marginTop: 8, fontSize: 14.5, fontWeight: '500', color: 'rgba(255,255,255,0.85)' }}>Sign in to continue your AI development journey</Text>
 
         <View style={[{ marginTop: 30, backgroundColor: sheetBg, borderRadius: 26, paddingTop: 22, paddingHorizontal: 22, paddingBottom: 24, gap: 15 }, loginShadow]}>
           {view === 'phone' && cloud ? (
             <>
               <Pressable onPress={() => { setError(''); setOAuthPhoneToken(''); setView('password'); }} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
                 <Icons.back size={16} color={mutedText} sw={2} />
-                <Text style={{ color: mutedText, fontSize: 14 }}>账号密码登录</Text>
+                <Text style={{ color: mutedText, fontSize: 14 }}>Email and password</Text>
               </Pressable>
 
               <Pressable
@@ -777,7 +777,7 @@ export default function LoginScreen() {
                   ref={phoneInputRef}
                   value={phone}
                   onChangeText={(v) => setPhone(v.replace(/\D/g, '').slice(0, 11))}
-                  placeholder="请输入手机号"
+                  placeholder="Enter phone number"
                   placeholderTextColor="#B4B9B0"
                   keyboardType="phone-pad"
                   textContentType="telephoneNumber"
@@ -793,7 +793,7 @@ export default function LoginScreen() {
                   <TextInput
                     value={code}
                     onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="短信验证码"
+                    placeholder="SMS verification code"
                     placeholderTextColor="#B4B9B0"
                     keyboardType="number-pad"
                     textContentType="oneTimeCode"
@@ -808,7 +808,7 @@ export default function LoginScreen() {
                   disabled={busy || codeBusy || countdown > 0}
                   style={({ pressed }) => [{ width: 104, height: 54, borderRadius: 15, borderWidth: 1.5, borderColor: fieldBorder, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, backgroundColor: fieldBg }, pressed && { opacity: 0.82 }, (busy || codeBusy || countdown > 0) && { opacity: 0.55 }]}
                 >
-                  {codeBusy ? <ActivityIndicator color={heroGreen} size="small" /> : <Text style={{ color: heroGreen, fontSize: 14, fontWeight: '800' }}>{countdown > 0 ? `${countdown}s` : '获取验证码'}</Text>}
+                  {codeBusy ? <ActivityIndicator color={heroGreen} size="small" /> : <Text style={{ color: heroGreen, fontSize: 14, fontWeight: '800' }}>{countdown > 0 ? `${countdown}s` : 'Get code'}</Text>}
                 </Pressable>
               </View>
 
@@ -820,14 +820,14 @@ export default function LoginScreen() {
                 {busy ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <ActivityIndicator color="#FFFFFF" size="small" />
-                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>{phase || '登录中…'}</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>{phase || 'Signing in…'}</Text>
                   </View>
-                ) : <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>登 录</Text>}
+                ) : <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>S I G N  I N</Text>}
               </Pressable>
             </>
           ) : (
             <>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: darkText, letterSpacing: 0 }}>账号密码登录</Text>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: darkText, letterSpacing: 0 }}>Email and password</Text>
 
               <View style={fieldFrameStyle('email')}>
                 <Icons.mail size={19} color={focused === 'email' ? heroGreen : iconIdle} sw={1.9} />
@@ -838,7 +838,7 @@ export default function LoginScreen() {
 
               <View style={[fieldFrameStyle('pwd'), { paddingRight: 8 }]}>
                 <Icons.lock size={19} color={focused === 'pwd' ? heroGreen : iconIdle} sw={1.9} />
-                <TextInput value={password} onChangeText={setPassword} placeholder="请输入密码" placeholderTextColor="#B4B9B0"
+                <TextInput value={password} onChangeText={setPassword} placeholder="Enter password" placeholderTextColor="#B4B9B0"
                   secureTextEntry={!showPwd} autoCapitalize="none" autoCorrect={false} editable={!busy && !codeBusy}
                   style={inputStyle}
                   onSubmitEditing={onPasswordSubmit} {...focusProps('pwd')} />
@@ -855,9 +855,9 @@ export default function LoginScreen() {
                 {busy ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <ActivityIndicator color="#FFFFFF" size="small" />
-                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>{phase || '登录中…'}</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }}>{phase || 'Signing in…'}</Text>
                   </View>
-                ) : <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>登 录</Text>}
+                ) : <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>S I G N  I N</Text>}
               </Pressable>
 
             </>
@@ -866,15 +866,15 @@ export default function LoginScreen() {
           {/* 服务器设置：默认隐藏，连点 logo 6 次后出现 */}
           {showServer ? (
             <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: t.line }}>
-              <Text style={{ fontSize: 13, color: t.tx2, marginBottom: 8 }}>服务器地址</Text>
+              <Text style={{ fontSize: 13, color: t.tx2, marginBottom: 8 }}>Server URL</Text>
               <TextInput value={serverUrl} onChangeText={setServerUrl} placeholder="https://monkeycode-ai.com" placeholderTextColor={t.tx3}
                 autoCapitalize="none" autoCorrect={false} keyboardType="url" editable={!busy && !codeBusy} style={fieldStyle('server')} {...focusProps('server')} />
-              <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>私有化 / 离线部署可在此填写你的服务地址。</Text>
+              <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>For private or offline deployments, enter your server URL here.</Text>
 
-              <Text style={{ fontSize: 13, color: t.tx2, marginTop: 16, marginBottom: 8 }}>Basic Auth（可选）</Text>
+              <Text style={{ fontSize: 13, color: t.tx2, marginTop: 16, marginBottom: 8 }}>Basic Auth (optional)</Text>
               <TextInput value={basicAuthInput} onChangeText={setBasicAuthInput} placeholder="用户名:密码" placeholderTextColor={t.tx3}
                 autoCapitalize="none" autoCorrect={false} editable={!busy && !codeBusy} style={fieldStyle('basic')} {...focusProps('basic')} />
-              <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>测试环境若有 HTTP Basic Auth 代理鉴权，在此填写「用户名:密码」，会作为 Authorization 头发送。</Text>
+              <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 8 }}>For test environments using HTTP Basic Auth, enter “username:password”; it will be sent in the Authorization header.</Text>
             </View>
           ) : null}
         </View>
