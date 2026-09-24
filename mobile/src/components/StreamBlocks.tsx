@@ -134,7 +134,7 @@ function MathBlock({ tex, t }: { tex: string; t: Theme }) {
       <Pressable disabled={fit >= 1} onPress={() => setExpanded(true)} style={{ marginVertical: 7, paddingVertical: 4, alignItems: 'center' }}>
         <SvgAst ast={ast} override={{ pointerEvents: 'none' as const, width: rendered.width * fit, height: rendered.height * fit, color: t.tx }} />
         {fit < MIN_BLOCK_MATH_SCALE ? (
-          <Text style={{ marginTop: 6, color: t.tx3, fontSize: 11.5 }}>公式过长已缩小 · 点按放大查看</Text>
+          <Text style={{ marginTop: 6, color: t.tx3, fontSize: 11.5 }}>Formula was scaled down · tap to enlarge</Text>
         ) : null}
       </Pressable>
       {expanded ? (
@@ -149,7 +149,7 @@ function MathBlock({ tex, t }: { tex: string; t: Theme }) {
               contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 56, alignItems: 'center' }}>
               <SvgAst ast={ast} override={{ pointerEvents: 'none' as const, width: rendered.width, height: rendered.height, color: t.tx }} />
             </ScrollView>
-            <Text pointerEvents="none" style={{ position: 'absolute', bottom: 48, alignSelf: 'center', color: t.tx3, fontSize: 12.5 }}>左右滑动查看 · 点按空白处关闭</Text>
+            <Text pointerEvents="none" style={{ position: 'absolute', bottom: 48, alignSelf: 'center', color: t.tx3, fontSize: 12.5 }}>Swipe left/right to view · tap outside to close</Text>
           </View>
         </Modal>
       ) : null}
@@ -366,7 +366,7 @@ function ThoughtBlock({ text, t, onCopy }: { text: string; t: Theme; onCopy?: (s
     <Pressable onPress={() => setOpen((o) => !o)} onLongPress={() => onCopy?.(text)} style={{ paddingVertical: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
         <Icons.brain size={14} color={t.tx3} sw={1.6} />
-        <Text style={{ color: t.tx3, fontSize: 12.5, fontWeight: '500' }}>思考过程</Text>
+        <Text style={{ color: t.tx3, fontSize: 12.5, fontWeight: '500' }}>Thinking process</Text>
         <Icons.chevron size={13} color={t.tx3} sw={1.9} style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }} />
       </View>
       {open ? <Text style={{ marginTop: 7, paddingLeft: 21, color: t.tx3, fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>{text}</Text> : null}
@@ -384,33 +384,33 @@ function ErrorBlock({ text, t, onCopy }: { text: string; t: Theme; onCopy?: (s: 
       <Icons.alert size={16} color={t.red} sw={1.9} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={long && !expanded ? 6 : undefined} style={{ color: t.red, fontSize: 13.5, lineHeight: 20 }}>{text}</Text>
-        {long ? <Text style={{ color: t.red, opacity: 0.75, fontSize: 11.5, fontWeight: '700', marginTop: 7 }}>{expanded ? '收起' : '展开完整错误'} · 长按复制</Text> : null}
+        {long ? <Text style={{ color: t.red, opacity: 0.75, fontSize: 11.5, fontWeight: '700', marginTop: 7 }}>{expanded ? 'Collapse' : 'Expand full error'} · 长按复制</Text> : null}
       </View>
     </Pressable>
   );
 }
 
-// ── 工具调用卡片：两行（动作 + 目标）+ 点击展开详情（对齐 web message-toolcall）──────
+// ── Tool call卡片：两行（动作 + 目标）+ 点击展开详情（对齐 web message-toolcall）──────
 type ToolMsg = Extract<ChatMessage, { kind: 'tool' }>;
 
 const cleanStr = (v: unknown): string => (typeof v === 'string' ? v.replace(/[\r\n\t]+/g, ' ').trim() : '');
 
-/** 动作名：按 ACP kind；编辑类随状态变化；未知 kind 回退到中文短标题或「工具调用」。 */
+/** 动作名：按 ACP kind；编辑类随状态变化；未知 kind 回退到中文短标题或「Tool call」。 */
 function toolAction(m: ToolMsg): string {
-  const editing = m.status === 'failed' ? '修改文件失败'
-    : (m.status === 'pending' || m.status === 'in_progress') ? '正在修改文件' : '修改文件';
+  const editing = m.status === 'failed' ? 'File edit failed'
+    : (m.status === 'pending' || m.status === 'in_progress') ? 'Editing file' : 'Edit file';
   switch (m.toolKind) {
     case 'edit': return editing;
-    case 'read': return '读取文件';
-    case 'execute': return '执行命令';
-    case 'search': return '查找内容';
-    case 'fetch': return '获取网页';
-    case 'delete': return '删除文件';
-    case 'move': return '移动文件';
-    case 'think': return '思考';
+    case 'read': return 'Read file';
+    case 'execute': return 'Run command';
+    case 'search': return 'Search content';
+    case 'fetch': return 'Fetch web page';
+    case 'delete': return 'Delete file';
+    case 'move': return 'Move file';
+    case 'think': return 'Thinking';
     default:
       if (typeof m.title === 'string' && m.title.length < 24 && /[一-龥]/.test(m.title)) return m.title;
-      return '工具调用';
+      return 'Tool call';
   }
 }
 
@@ -452,7 +452,7 @@ function toolDetail(m: ToolMsg): string {
     const cmd = typeof ri.command === 'string' ? ri.command
       : Array.isArray(ri.command) ? ri.command[ri.command.length - 1]
       : (ri.parsed_cmd?.[0]?.cmd ?? '');
-    return `$ ${cmd}\n${out || '（命令输出为空）'}`.trim();
+    return `$ ${cmd}\n${out || '(command output is empty)'}`.trim();
   }
   if (out) return out;
   try { return Object.keys(ri).length ? JSON.stringify(ri, null, 2) : ''; } catch { return ''; }
@@ -609,14 +609,14 @@ function AskBlock({ askId, status, questions, canAnswer, answerSubmitState, onAn
   const interactive = canAnswer && submitState === 'idle';
   const answered = status === 'completed';
   const expired = status === 'expired' || status === 'failed';
-  const statusLabel = answered ? '已回答' : expired ? '问题已过期' : null;
+  const statusLabel = answered ? 'Answered' : expired ? 'Question expired' : null;
   const canSubmit = interactive && buildAskAnswers(questions, selected, customAnswers) !== null;
 
   return (
     <View style={{ backgroundColor: t.bg2, borderWidth: 1, borderColor: expired ? t.line : t.acLine, borderRadius: 13, padding: 14, gap: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
         {expired ? <Icons.alert size={15} color={t.tx3} sw={1.8} /> : <Icons.sparkle size={15} color={t.acTx} sw={1.8} />}
-        <Text style={{ color: expired ? t.tx3 : t.acTx, fontSize: 13.5, fontWeight: '700', flex: 1 }}>AI 提问</Text>
+        <Text style={{ color: expired ? t.tx3 : t.acTx, fontSize: 13.5, fontWeight: '700', flex: 1 }}>AI question</Text>
         {statusLabel ? <Text style={{ color: t.tx3, fontSize: 11.5 }}>{statusLabel}</Text> : null}
       </View>
       {questions.map((q, qi) => (
@@ -654,13 +654,13 @@ function AskBlock({ askId, status, questions, canAnswer, answerSubmitState, onAn
                     {q.multiSelect
                       ? <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, borderColor: customSelected ? t.ac : t.line2, backgroundColor: customSelected ? t.ac : 'transparent', alignItems: 'center', justifyContent: 'center' }}>{customSelected ? <Icons.check size={12} color={t.acInk} sw={3} /> : null}</View>
                       : <View style={{ width: 18, height: 18, borderRadius: 99, borderWidth: 1.5, borderColor: customSelected ? t.ac : t.line2, alignItems: 'center', justifyContent: 'center' }}>{customSelected ? <View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: t.ac }} /> : null}</View>}
-                    <Text style={{ flex: 1, color: customSelected ? t.tx : t.tx2, fontSize: 13.5, fontWeight: customSelected ? '600' : '400' }}>其他</Text>
+                    <Text style={{ flex: 1, color: customSelected ? t.tx : t.tx2, fontSize: 13.5, fontWeight: customSelected ? '600' : '400' }}>Other</Text>
                   </Pressable>
                   {interactive && customSelected ? (
                     <TextInput
                       value={customAnswers[qi] ?? ''}
                       onChangeText={(value) => setCustomAnswers((prev) => ({ ...prev, [qi]: value }))}
-                      placeholder="请输入回答"
+                      placeholder="Enter your answer"
                       placeholderTextColor={t.tx3}
                       autoFocus
                       // 键盘弹出会遮住列表下部：聚焦后由外层把整张提问卡滚回键盘上方
@@ -678,14 +678,14 @@ function AskBlock({ askId, status, questions, canAnswer, answerSubmitState, onAn
       ))}
       {interactive ? (
         <Pressable disabled={!canSubmit} onPress={submit} style={{ backgroundColor: t.ac, borderRadius: 12, paddingVertical: 11, alignItems: 'center', marginTop: 2, opacity: canSubmit ? 1 : 0.45 }}>
-          <Text style={{ color: t.acInk, fontSize: 14, fontWeight: '700' }}>提交回答</Text>
+          <Text style={{ color: t.acInk, fontSize: 14, fontWeight: '700' }}>Submit answer</Text>
         </Pressable>
       ) : expired ? (
-        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>问题已过期（可在下方直接输入消息）</Text>
+        <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>Question expired（可在下方直接输入消息）</Text>
       ) : !answered && submitState === 'queued' ? (
-        <Text style={{ color: t.amber, fontSize: 11.5 }}>网络恢复后将自动发送回答</Text>
+        <Text style={{ color: t.amber, fontSize: 11.5 }}>The answer will be sent automatically when the network is restored</Text>
       ) : !answered && submitState === 'sent' ? (
-        <Text style={{ color: t.tx3, fontSize: 11.5 }}>回答已发送，等待处理</Text>
+        <Text style={{ color: t.tx3, fontSize: 11.5 }}>Answer sent, waiting for processing</Text>
       ) : !answered && status !== 'pending' ? (
         <Text style={{ color: t.tx3, fontSize: 11.5, fontStyle: 'italic' }}>该提问已失效（可在下方直接输入消息）</Text>
       ) : null}
