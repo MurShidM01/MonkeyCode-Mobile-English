@@ -30,6 +30,8 @@ for (const root of roots) {
     const lines = source.split(/\r?\n/);
     lines.forEach((line, i) => {
       if (!cjk.test(line)) return;
+      // Ignore regex literals: unicode ranges such as [一-龥] are implementation data, not UI copy.
+      if (/=\s*\/(?:\\.|[^/\\n])+\/[dgimsuvy]*\s*;?\s*$/.test(line.trim())) return;
       // User-facing literals and JSX text only; implementation identifiers/comments are ignored.
       if (/(?:['"`][^'"`]*[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af][^'"`]*['"`]|>[^<]*[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af][^<]*<)/.test(line)) {
         offenders.push(file + ':' + (i + 1) + ': ' + line.trim());
