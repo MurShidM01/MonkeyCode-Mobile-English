@@ -273,8 +273,8 @@ export default function NewProjectScreen() {
             <Text style={{ fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: t.tx, marginBottom: 16 }}>Link a code repository</Text>
 
             <Card style={{ overflow: 'hidden', marginBottom: 14 }}>
-              <ConfigRow icon="key" label="Git 账号" value={identityValue} placeholder="Select a linked account" onPress={() => setPicking(true)} t={t} />
-              <ConfigRow icon="folder" label="代码仓库" value={repoValue}
+              <ConfigRow icon="key" label="Git account" value={identityValue} placeholder="Select a linked account" onPress={() => setPicking(true)} t={t} />
+              <ConfigRow icon="folder" label="Repository" value={repoValue}
                 placeholder={identityId ? 'Select repository' : 'Select a Git account first'}
                 onPress={() => { if (!identityId) { setPicking(true); return; } setRepoPickerOpen(true); }} divider t={t} />
             </Card>
