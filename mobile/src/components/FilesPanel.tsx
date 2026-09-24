@@ -115,7 +115,7 @@ function CodeView({ text, t }: { text: string; t: Theme }) {
               <Text style={{ color: t.termTx, fontFamily: 'monospace', fontSize: 12.5, lineHeight: 19 }}>{line || ' '}</Text>
             </View>
           ))}
-          {all.length > MAX_LINES ? <Text style={{ color: t.tx3, fontStyle: 'italic', marginTop: 10, paddingLeft: 56, fontSize: 12 }}>… Files过长，仅显示前 {MAX_LINES} 行</Text> : null}
+          {all.length > MAX_LINES ? <Text style={{ color: t.tx3, fontStyle: 'italic', marginTop: 10, paddingLeft: 56, fontSize: 12 }}>… File is too long. Showing the first {MAX_LINES} lines</Text> : null}
         </View>
       </ScrollView>
     </ScrollView>
@@ -207,7 +207,7 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
   // 自动携带会话 cookie），代价是整包先进内存——@react-native-cookies/cookies 在新架构上不可用，故不走它。
   const download = useCallback(async (item: { path: string; name: string; dir: boolean }) => {
     if (downloading !== null || uploadingFile) return;
-    if (!vmId) { Alert.alert('无法下载', 'Development environment is unavailable. Please try again.'); return; }
+    if (!vmId) { Alert.alert('Unable to download', 'Development environment is unavailable. Please try again.'); return; }
     const downloadName = item.dir ? `${item.name}.zip` : item.name;
     const safeName = downloadName.replace(/[/\\:*?"<>|\s]/g, '_') || 'download';
     const url = getDownloadUrl(vmId, normalizePath(`${WORKDIR}/${item.path}`), downloadName);
@@ -219,7 +219,7 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
     const share = async (uri: string) => {
       if (canceledRef.current) return;
       if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { dialogTitle: safeName, mimeType: item.dir ? 'application/zip' : undefined });
-      else Alert.alert('Downloaded', `Saved到：${uri}`);
+      else Alert.alert('Downloaded', `Saved to: ${uri}`);
     };
     const fail = (msg: string) => { if (!canceledRef.current) Alert.alert('Download failed', msg); };
     const done = () => { resumableRef.current = null; xhrRef.current = null; setDownloading(null); setDl(null); };
@@ -228,14 +228,14 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
       try {
         if (isNativeFileSaverAvailable()) {
           const savedUri = await saveFileToDevice(target, safeName, mimeForName(safeName));
-          if (savedUri) Alert.alert('Saved', 'FilesSaved到所选位置');
+          if (savedUri) Alert.alert('Saved', 'File saved to the selected location');
           return;
         }
         const perm = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
         if (!perm.granted) return;
         const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(perm.directoryUri, safeName, mimeForName(safeName));
         await FileSystem.writeAsStringAsync(fileUri, b64, { encoding: FileSystem.EncodingType.Base64 });
-        Alert.alert('Saved', 'FilesSaved到所选Files夹');
+        Alert.alert('Saved', 'File saved to the selected folder');
       } catch (e) {
         const message = (e as Error)?.message || 'Unknown error';
         if (/isn['’]?t writable|not writable/i.test(message)) {
@@ -391,7 +391,7 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
           { name: file.name, path: relativePath, entry_mode: RepoEntryMode.File, size: file.size },
         ]);
       }
-      Alert.alert('Upload successful', `${file.name} 已上传到${targetDir ? ` ${targetDir}` : 'Root'}`);
+      Alert.alert('Upload successful', `${file.name} uploaded to${targetDir ? ` ${targetDir}` : ' root'}`);
       void Promise.all([loadDir(targetDir, true), loadChanges()]);
     } catch (e) {
       if (!controller?.signal.aborted && uploadOperationRef.current === operation) {
@@ -429,8 +429,8 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
 
   const closePanel = useCallback(() => { cancelUpload(); onClose(); }, [cancelUpload, onClose]);
   const openDir = (p: string) => { pathRef.current = p; setPath(p); loadDir(p); };
-  const openFile = async (p: string) => { setViewer({ path: p, content: null }); const c = await control?.getFileContent(p); setViewer({ path: p, content: c ?? '（无法读取该Files）' }); };
-  const openDiff = async (p: string) => { setDiff({ path: p, text: null }); const d = await control?.getFileDiff(p); setDiff({ path: p, text: d || '（无差异内容）' }); };
+  const openFile = async (p: string) => { setViewer({ path: p, content: null }); const c = await control?.getFileContent(p); setViewer({ path: p, content: c ?? '(Unable to read this file)' }); };
+  const openDiff = async (p: string) => { setDiff({ path: p, text: null }); const d = await control?.getFileDiff(p); setDiff({ path: p, text: d || '(No diff content)' }); };
 
   const segs = path ? path.split('/').filter(Boolean) : [];
   const sortedEntries = (entries ?? []).filter((f) => f.name !== '.git').slice().sort((a, b) => {
@@ -463,7 +463,7 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
           <View style={{ paddingTop: top, backgroundColor: t.bg2, borderBottomWidth: 1, borderColor: t.line }}>
             <View style={{ height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6 }}>
               <Pressable onPress={closePanel} hitSlop={8} style={{ padding: 8 }}><Icons.back size={22} color={t.tx} sw={2} /></Pressable>
-              <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx }}>代码Files</Text>
+              <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: t.tx }} >Code files</Text>
               <Pressable onPress={() => (tab === 'tree' ? loadDir(path) : loadChanges())} hitSlop={8} style={{ padding: 8 }}>
                 {(entriesLoading || changesLoading) ? <Spinner size={18} color={t.acTx} sw={2} /> : <Icons.refresh size={19} color={t.tx2} sw={2} />}
               </Pressable>
