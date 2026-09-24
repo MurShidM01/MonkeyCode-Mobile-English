@@ -48,8 +48,8 @@ export default function ProjectsScreen() {
     }
   }, []);
 
-  // 进入页面即刷新（与任务页一致）：首次显示加载态，之后静默刷新，
-  // 这样新建项目后返回列表能立即看到。
+  // 进入页面即刷新（与Tasks页一致）：首次显示加载态，之后静默刷新，
+  // 这样新建Projects后返回列表能立即看到。
   useFocusEffect(
     useCallback(() => {
       fetchPage(undefined, didInitRef.current ? 'refresh' : 'init');
@@ -65,7 +65,7 @@ export default function ProjectsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载项目…" />
+        <LoadingView label="加载Projects…" />
       ) : error && projects.length === 0 ? (
         <EmptyView title="加载失败" subtitle={error} icon="alert" />
       ) : (
@@ -81,7 +81,7 @@ export default function ProjectsScreen() {
           ListHeaderComponent={
             <View style={{ paddingBottom: 14, flexDirection: 'row', alignItems: 'flex-start' }}>
               <View style={{ flex: 1 }}>
-                <BigTitle title="项目" sub={projects.length ? `共 ${projects.length}${hasMore ? '+' : ''} 个项目` : undefined} />
+                <BigTitle title="Projects" sub={projects.length ? `共 ${projects.length}${hasMore ? '+' : ''} 个Projects` : undefined} />
               </View>
               <Pressable onPress={() => router.push('/new-project')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: 14, borderRadius: 99, backgroundColor: t.acGhost, marginRight: spacing.pad, marginTop: 14 }, pressed && { opacity: 0.6 }]}>
                 <Icons.plus size={16} color={t.acTx} sw={2.4} />
@@ -97,9 +97,9 @@ export default function ProjectsScreen() {
           onEndReachedThreshold={0.4}
           ListEmptyComponent={
             <View style={{ paddingTop: 40 }}>
-              <EmptyView title="暂无项目" subtitle="绑定 Git 身份并关联仓库后，即可创建项目" icon="folder" />
+              <EmptyView title="暂无Projects" subtitle="Link Git 身份并关联仓库后，即可创建Projects" icon="folder" />
               <View style={{ paddingHorizontal: spacing.pad, marginTop: 18 }}>
-                <PrimaryButton block label="新建项目" icon="plus" onPress={() => router.push('/new-project')} />
+                <PrimaryButton block label="新建Projects" icon="plus" onPress={() => router.push('/new-project')} />
               </View>
             </View>
           }
@@ -110,7 +110,7 @@ export default function ProjectsScreen() {
           }
         />
       )}
-      <GlassTop title="项目" collapsed={collapsed} />
+      <GlassTop title="Projects" collapsed={collapsed} />
     </View>
   );
 }
