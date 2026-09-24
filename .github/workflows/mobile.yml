@@ -7,7 +7,7 @@ on:
       - 'v*'
     paths:
       - 'mobile/**'
-      - 'android/**'
+      - 'mobile/android/**'
       - '.github/workflows/mobile.yml'
   pull_request:
     paths:
@@ -72,13 +72,13 @@ jobs:
           const fs = require('fs');
           const tag = process.env.RELEASE_TAG;
           const version = tag.replace(/^v/, '');
-          if (!/^\\d+(?:\\.\\d+){0,2}$/.test(version)) {
+          if (!/^\d+(?:\.\d+){0,2}$/.test(version)) {
             throw new Error('Release tag must use v<version>, for example v260608 or v1.2.3');
           }
           const appPath = 'app.json';
           const app = JSON.parse(fs.readFileSync(appPath, 'utf8'));
           app.expo.version = version;
-          if (version.split('.').length === 1 && /^\\d+$/.test(version)) {
+          if (version.split('.').length === 1 && /^\d+$/.test(version)) {
             app.expo.android.versionCode = Number(version);
           }
           fs.writeFileSync(appPath, JSON.stringify(app, null, 2) + '\\n');
@@ -113,6 +113,26 @@ jobs:
           cache: npm
           cache-dependency-path: mobile/package-lock.json
       - run: npm ci
+      - name: Sync Android app version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const tag = process.env.RELEASE_TAG;
+          const version = tag.replace(/^v/, '');
+          if (!/^\d+(?:\.\d+){0,2}$/.test(version)) {
+            throw new Error('Release tag must use v<version>, for example v260608 or v1.2.3');
+          }
+          const appPath = 'app.json';
+          const app = JSON.parse(fs.readFileSync(appPath, 'utf8'));
+          app.expo.version = version;
+          if (version.split('.').length === 1 && /^\d+$/.test(version)) {
+            app.expo.android.versionCode = Number(version);
+          }
+          fs.writeFileSync(appPath, JSON.stringify(app, null, 2) + '\n');
+          NODE
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive --no-install
       - name: Assemble release APK
