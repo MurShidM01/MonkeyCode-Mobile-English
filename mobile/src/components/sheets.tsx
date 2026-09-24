@@ -24,7 +24,7 @@ function rowLabel(m: Model, groupLabel: string): string {
 
 function badgeTone(badge: string | undefined, t: Theme): { c: string; bg: string } | null {
   if (!badge) return null;
-  if (badge.includes('积分')) return { c: t.amber, bg: t.amberGhost };
+  if (badge.toLowerCase().includes('credit')) return { c: t.amber, bg: t.amberGhost };
   return { c: t.acTx, bg: t.acGhost };
 }
 
