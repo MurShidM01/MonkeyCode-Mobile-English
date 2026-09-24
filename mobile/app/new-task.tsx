@@ -16,9 +16,9 @@ import { useSpeechToText } from '@/speech/useSpeechToText';
 import { DEFAULT_SKILL_IDS, modelLabel, pickDefaultImage, pickDefaultModel, TASK_DEFAULTS } from '@/config';
 import { spacing, useTheme, type Theme } from '@/theme';
 
-const SUGGESTIONS = ['修复一个线上 bug', '为这个仓库写单元测试', '重构这个模块', '解释这段代码做了什么'];
+const SUGGESTIONS = ['Fix an online bug', 'Write unit tests for this repository', 'Refactor this module', 'Explain what this code does'];
 
-// 「选择仓库」列表里的「手动输入仓库地址」入口标识（区别于真实 project.id）
+// 「Select repository」列表里的「Enter repository URL manually」入口标识（区别于真实 project.id）
 const MANUAL_REPO_KEY = '__manual_repo__';
 const ZIP_REPO_KEY = '__zip_repo__';
 
@@ -51,7 +51,7 @@ export default function NewTaskScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const aiConsent = useAiConsent(); // 新建任务会把内容发给 AI，需先取得数据处理同意（App Store 2.1）
+  const aiConsent = useAiConsent(); // New task会把内容发给 AI，需先取得数据处理同意（App Store 2.1）
   const params = useLocalSearchParams<{ repo?: string; repoName?: string; projectId?: string }>();
 
   const [models, setModels] = useState<Model[]>([]);
@@ -63,7 +63,7 @@ export default function NewTaskScreen() {
   const [content, setContent] = useState('');
   const [modelId, setModelId] = useState('');
   const [imageId, setImageId] = useState('');
-  const [repoKey, setRepoKey] = useState<string>(params.projectId || ''); // '' = 不关联仓库；project.id = 选中项目；MANUAL_REPO_KEY = 手动输入
+  const [repoKey, setRepoKey] = useState<string>(params.projectId || ''); // '' = No repository；project.id = 选中Project；MANUAL_REPO_KEY = 手动输入
   const [manualRepo, setManualRepo] = useState(''); // 手动输入的 Git 仓库地址
   const [zipFile, setZipFile] = useState<PickedFile | null>(null); // 本地上传的 zip 包
   const zipPickingRef = useRef(false);
@@ -71,12 +71,12 @@ export default function NewTaskScreen() {
   const zipPickFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [picking, setPicking] = useState<'repo' | 'model' | null>(null);
-  const [manualOpen, setManualOpen] = useState(false); // 手动输入仓库地址对话框
+  const [manualOpen, setManualOpen] = useState(false); // Enter repository URL manually对话框
   const [limitOpen, setLimitOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // 语音输入：识别文本写回任务描述（保留点麦克风前已有内容作前缀）
+  // 语音输入：识别文本写回Task描述（保留点麦克风前已有内容作前缀）
   const speechBaseRef = useRef('');
   const speech = useSpeechToText({
     onText: (text) => setContent(speechBaseRef.current + text),
@@ -102,7 +102,7 @@ export default function NewTaskScreen() {
         setImageId(pickDefaultImage(imgs));
         setProjects(projRes.projects);
       } catch (e) {
-        setLoadError(e instanceof ApiError ? e.message : '加载配置失败');
+        setLoadError(e instanceof ApiError ? e.message : 'Failed to load configuration');
       } finally {
         setLoading(false);
       }
@@ -113,10 +113,10 @@ export default function NewTaskScreen() {
   const selectedProject = useMemo(() => projects.find((p) => p.id === repoKey), [projects, repoKey]);
 
   const repoOptions: PickerOption[] = [
-    { key: '', title: '快速开始', sub: '不关联仓库', icon: 'sparkle' },
-    { key: ZIP_REPO_KEY, title: '上传 Zip 文件', sub: zipFile?.name || '选择本地 .zip 压缩包', icon: 'filePlus' },
-    { key: MANUAL_REPO_KEY, title: '手动输入仓库地址', sub: manualRepo || '填写 Git 仓库地址', icon: manualRepo ? providerIconForUrl(manualRepo) : 'git' },
-    ...projects.map((p, i) => ({ key: p.id || `p${i}`, title: p.name || p.full_name || '项目', sub: p.repo_url, icon: providerIconForUrl(p.repo_url) })),
+    { key: '', title: 'Quick start', sub: 'No repository', icon: 'sparkle' },
+    { key: ZIP_REPO_KEY, title: 'Upload Zip file', sub: zipFile?.name || 'Select a local .zip archive', icon: 'filePlus' },
+    { key: MANUAL_REPO_KEY, title: 'Enter repository URL manually', sub: manualRepo || 'Enter a Git repository URL', icon: manualRepo ? providerIconForUrl(manualRepo) : 'git' },
+    ...projects.map((p, i) => ({ key: p.id || `p${i}`, title: p.name || p.full_name || 'Project', sub: p.repo_url, icon: providerIconForUrl(p.repo_url) })),
   ];
 
   const selectZip = useCallback(async () => {
@@ -127,7 +127,7 @@ export default function NewTaskScreen() {
     try {
       file = await pickZipFile();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '无法选择 zip 文件');
+      setError(e instanceof Error ? e.message : 'Unable to select the zip file');
       return;
     } finally {
       zipPickingRef.current = false;
@@ -162,12 +162,12 @@ export default function NewTaskScreen() {
 
   const submit = useCallback(async () => {
     setError('');
-    if (!content.trim()) { setError('请描述你想让 AI 做什么'); return; }
-    if (!modelId) { setError('请选择模型'); return; }
-    if (repoKey === ZIP_REPO_KEY && !zipFile) { setError('请选择 zip 文件'); return; }
+    if (!content.trim()) { setError('Describe what you want the AI to do'); return; }
+    if (!modelId) { setError('Please select a model'); return; }
+    if (repoKey === ZIP_REPO_KEY && !zipFile) { setError('Select a zip file'); return; }
     setSubmitting(true);
     try {
-      // zip 上传优先；否则手动输入仓库地址；再否则用所选项目；都没有则不关联仓库（快速开始）
+      // zip 上传优先；否则Enter repository URL manually；再否则用所选Project；都没有则No repository（Quick start）
       const manualUrl = repoKey === MANUAL_REPO_KEY ? manualRepo.trim() : '';
       let repo: { repo_url?: string; zip_url?: string; repo_filename?: string } = {};
       if (repoKey === ZIP_REPO_KEY && zipFile) {
@@ -190,21 +190,21 @@ export default function NewTaskScreen() {
         extra: { skill_ids: DEFAULT_SKILL_IDS, project_id: (!manualUrl && repoKey !== ZIP_REPO_KEY) ? selectedProject?.id : undefined },
       });
       if (task?.id) router.replace(`/task/${task.id}`);
-      else setError('任务创建成功但未返回 ID');
+      else setError('Task created, but no task ID was returned');
     } catch (e) {
       if (e instanceof ApiError && e.code === 10811) setLimitOpen(true);
-      else setError(e instanceof Error ? e.message : '任务创建失败，请重试');
+      else setError(e instanceof Error ? e.message : 'Failed to create task. Please try again.');
     } finally {
       setSubmitting(false);
     }
   }, [content, imageId, modelId, router, selectedProject, repoKey, manualRepo, zipFile]);
 
-  // 仓库行只展示一处信息，避免「快速开始 / 不关联仓库」「名字 / 同名仓库路径」这种左右重复。
+  // 仓库行只展示一处信息，避免「Quick start / No repository」「名字 / 同名仓库路径」这种左右重复。
   const repoValue = repoKey === ZIP_REPO_KEY
-    ? zipFile?.name || 'Zip 文件'
+    ? zipFile?.name || 'Zip file'
     : repoKey === MANUAL_REPO_KEY && manualRepo
     ? repoNameFromUrl(manualRepo)
-    : selectedProject ? (selectedProject.full_name || selectedProject.name || '项目') : '不关联仓库';
+    : selectedProject ? (selectedProject.full_name || selectedProject.name || 'Project') : 'No repository';
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.bg }} behavior="padding">
@@ -213,7 +213,7 @@ export default function NewTaskScreen() {
       <View style={{ paddingTop: Platform.OS === 'ios' ? 8 : insets.top + 6 }}>
         <View style={{ height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
           <View style={{ width: 38 }} />
-          <Text style={{ position: 'absolute', left: 56, right: 56, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>新建任务</Text>
+          <Text style={{ position: 'absolute', left: 56, right: 56, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>New task</Text>
           <View style={{ marginLeft: 'auto' }}>
             <IconButton icon="plus" onPress={() => router.back()} iconSize={24} sw={2} style={{ transform: [{ rotate: '45deg' }] }} />
           </View>
@@ -227,13 +227,13 @@ export default function NewTaskScreen() {
           {/* headline */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }}>
             <MonkeyLogo size={40} />
-            <Text style={{ fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: t.tx }}>你想让我做什么呢？</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: t.tx }}>What would you like me to do?</Text>
           </View>
 
           {/* config */}
           <Card style={{ overflow: 'hidden', marginBottom: 14 }}>
-            <ConfigRow icon={repoKey === ZIP_REPO_KEY ? 'file' : 'folder'} label="代码仓库" value={repoValue} onPress={() => setPicking('repo')} t={t} />
-            <ConfigRow icon="cube" label="模型" value={selectedModel ? modelLabel(selectedModel) : '选择模型'} divider onPress={() => setPicking('model')} t={t} />
+            <ConfigRow icon={repoKey === ZIP_REPO_KEY ? 'file' : 'folder'} label="Repository" value={repoValue} onPress={() => setPicking('repo')} t={t} />
+            <ConfigRow icon="cube" label="Model" value={selectedModel ? modelLabel(selectedModel) : 'Select model'} divider onPress={() => setPicking('model')} t={t} />
           </Card>
 
           {/* describe */}
@@ -241,7 +241,7 @@ export default function NewTaskScreen() {
             <TextInput
               value={content}
               onChangeText={setContent}
-              placeholder={speech.active ? '请说话…' : '描述任务，比如：修复登录页 token 刷新失效的问题，并补充测试…'}
+              placeholder={speech.active ? 'Speak…' : 'Describe the task, e.g. fix the login-page token refresh issue and add tests…'}
               placeholderTextColor={speech.active ? t.acTx : t.tx3}
               multiline
               style={{ minHeight: 110, color: t.tx, fontSize: 15.5, lineHeight: 22, textAlignVertical: 'top', paddingRight: 40, paddingBottom: 34 }}
@@ -254,7 +254,7 @@ export default function NewTaskScreen() {
           </Card>
 
           {/* suggestions */}
-          <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 10 }}>试试这些</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 10 }}>Try these</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {SUGGESTIONS.map((s) => (
               <Pressable key={s} onPress={() => setContent(s)} style={{ paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11, backgroundColor: t.bg2, borderWidth: 1, borderColor: t.line }}>
@@ -271,13 +271,13 @@ export default function NewTaskScreen() {
       {/* footer action */}
       {!loading ? (
         <View style={{ paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 14, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg }}>
-          <PrimaryButton block icon={submitting ? undefined : 'send'} label={submitting ? (repoKey === ZIP_REPO_KEY ? '正在上传…' : '正在创建…') : '发起任务'} disabled={submitting || !content.trim()} onPress={submit} />
+          <PrimaryButton block icon={submitting ? undefined : 'send'} label={submitting ? (repoKey === ZIP_REPO_KEY ? 'Uploading…' : 'Creating…') : 'Start task'} disabled={submitting || !content.trim()} onPress={submit} />
         </View>
       ) : null}
 
-      <PickerSheet visible={picking === 'repo'} title="选择仓库" options={repoOptions} selected={repoKey}
+      <PickerSheet visible={picking === 'repo'} title="Select repository" options={repoOptions} selected={repoKey}
         onPick={(k) => {
-          // 「手动输入仓库地址」不直接选中，而是先收起列表、弹出输入框
+          // 「Enter repository URL manually」不直接选中，而是先收起列表、弹出输入框
           if (k === MANUAL_REPO_KEY) { setPicking(null); setManualOpen(true); return; }
           if (k === ZIP_REPO_KEY) { queueZipPickAfterSheet(); return; }
           setZipFile(null); setRepoKey(k); setPicking(null);
@@ -289,7 +289,7 @@ export default function NewTaskScreen() {
         onPick={(k) => { setModelId(k); setPicking(null); }} onClose={() => setPicking(null)} />
       <ConcurrentLimitModal visible={limitOpen} onClose={() => setLimitOpen(false)} onStopped={() => { setLimitOpen(false); setTimeout(() => submit(), 400); }} />
 
-      {/* AI 数据处理同意：新建任务会把内容发给 AI，未同意则退出 */}
+      {/* AI 数据处理同意：New task会把内容发给 AI，未同意则退出 */}
       <AiConsentModal visible={aiConsent.status === 'needed'} onAgree={aiConsent.grant} onDecline={() => router.back()} />
     </KeyboardAvoidingView>
   );

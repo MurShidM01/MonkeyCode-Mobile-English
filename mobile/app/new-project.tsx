@@ -1,10 +1,10 @@
 /**
- * 新建项目 —— 对齐 Web add-project.tsx：选一个已绑定的 Git 账号 → 从该身份有权访问的仓库里
- * 选择（支持搜索，也可手动填仓库地址）→ 起个项目名 → 创建。创建成功进入项目详情。
+ * New project —— 对齐 Web add-project.tsx：选一个已绑定的 Git 账号 → 从该身份有权访问的仓库里
+ * 选择（支持搜索，也可手动填仓库地址）→ 起个Project名 → 创建。创建成功进入Project详情。
  *
  * 移动端取舍（非照搬 Web 的弹窗下拉）：
  *  - 身份用底部 PickerSheet 选择；
- *  - 仓库用全屏可搜索面板（授权仓库可能很多，全屏比下拉更顺手），并内置「手动输入仓库地址」。
+ *  - 仓库用全屏可搜索面板（授权仓库可能很多，全屏比下拉更顺手），并内置「Enter repository URL manually」。
  */
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -19,7 +19,7 @@ import { Card, EmptyView, IconButton, LoadingView, PickerSheet, PrimaryButton, t
 import { gitPlatformLabel } from '@/git';
 import { spacing, useTheme, type Theme } from '@/theme';
 
-/** 从 owner/repo 或 Git 地址里取一个简短项目名。 */
+/** 从 owner/repo 或 Git 地址里取一个简短Project名。 */
 function repoShortName(fullName?: string, url?: string): string {
   const fn = (fullName || '').trim();
   if (fn) return fn.split('/').filter(Boolean).pop() || fn;
@@ -66,7 +66,7 @@ function RepoPickerModal({ visible, repos, loading, error, selectedUrl, onPick, 
         <View style={{ paddingTop: insets.top, backgroundColor: t.bg2, borderBottomWidth: 1, borderColor: t.line }}>
           <View style={{ height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}>
             <View style={{ width: 40 }} />
-            <Text style={{ flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>选择仓库</Text>
+            <Text style={{ flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>Select repository</Text>
             <Pressable onPress={onRefresh} hitSlop={8} style={{ padding: 8 }} disabled={loading}>
               <Icons.refresh size={20} color={loading ? t.tx3 : t.tx2} sw={2} />
             </Pressable>
@@ -76,7 +76,7 @@ function RepoPickerModal({ visible, repos, loading, error, selectedUrl, onPick, 
           <View style={{ paddingHorizontal: spacing.pad, paddingBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: t.bg3, borderRadius: 12, paddingHorizontal: 13, height: 42 }}>
               <Icons.search size={17} color={t.tx3} sw={1.9} />
-              <TextInput value={query} onChangeText={setQuery} placeholder="搜索仓库名称" placeholderTextColor={t.tx3}
+              <TextInput value={query} onChangeText={setQuery} placeholder="Search repository name" placeholderTextColor={t.tx3}
                 autoCapitalize="none" autoCorrect={false} style={{ flex: 1, color: t.tx, fontSize: 14.5 }} />
               {query ? <Pressable onPress={() => setQuery('')} hitSlop={8}><Icons.plus size={16} color={t.tx3} sw={2} style={{ transform: [{ rotate: '45deg' }] }} /></Pressable> : null}
             </View>
@@ -91,8 +91,8 @@ function RepoPickerModal({ visible, repos, loading, error, selectedUrl, onPick, 
                 <Icons.edit size={17} color={t.acTx} sw={1.8} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 14.5, fontWeight: '600', color: t.tx }}>手动输入仓库地址</Text>
-                <Text style={{ fontSize: 11.5, color: t.tx3, marginTop: 2 }}>列表里没有？直接填写 Git 仓库地址</Text>
+                <Text style={{ fontSize: 14.5, fontWeight: '600', color: t.tx }}>Enter repository URL manually</Text>
+                <Text style={{ fontSize: 11.5, color: t.tx3, marginTop: 2 }}>Not listed? Enter the Git repository URL directly</Text>
               </View>
               <Icons.chevron size={16} color={t.tx3} sw={1.9} />
             </Pressable>
@@ -106,7 +106,7 @@ function RepoPickerModal({ visible, repos, loading, error, selectedUrl, onPick, 
               </View>
             ) : filtered.length === 0 ? (
               <View style={{ paddingVertical: 36, alignItems: 'center', gap: 8 }}>
-                <Text style={{ color: t.tx3, fontSize: 13 }}>{repos.length === 0 ? '该账号暂无可访问的仓库' : '没有匹配的仓库'}</Text>
+                <Text style={{ color: t.tx3, fontSize: 13 }}>{repos.length === 0 ? 'This account has no accessible repositories' : 'No matching repositories'}</Text>
               </View>
             ) : (
               filtered.map((r, i) => {
@@ -162,7 +162,7 @@ export default function NewProjectScreen() {
       let active = true;
       listGitIdentities()
         .then((list) => { if (active) setIdentities(list); })
-        .catch((e) => { if (active) setLoadError(e instanceof ApiError ? e.message : '加载失败'); })
+        .catch((e) => { if (active) setLoadError(e instanceof ApiError ? e.message : 'Failed to load'); })
         .finally(() => { if (active) setLoading(false); });
       return () => { active = false; };
     }, []),
@@ -177,7 +177,7 @@ export default function NewProjectScreen() {
       const detail = await getGitIdentity(id, flush);
       setRepos(detail?.authorized_repositories ?? []);
     } catch (e) {
-      setReposError(e instanceof ApiError ? e.message : '获取仓库失败');
+      setReposError(e instanceof ApiError ? e.message : 'Failed to fetch repositories');
       setRepos([]);
     } finally {
       setReposLoading(false);
@@ -194,7 +194,7 @@ export default function NewProjectScreen() {
     void loadRepos(id);
   }, [identityId, loadRepos]);
 
-  // 选中仓库后：带出项目名（用户没手动改过才覆盖）。
+  // 选中仓库后：带出Project名（用户没手动改过才覆盖）。
   // 注意：先把上一次自动名存进局部常量再改 ref —— setName 的函数式更新器延迟到渲染时才跑，
   // 若直接读 autoNameRef.current 会读到刚写入的新值，导致切换仓库时不覆盖旧的自动名。
   const applyRepo = useCallback((url: string, fullName?: string) => {
@@ -224,9 +224,9 @@ export default function NewProjectScreen() {
 
   const submit = useCallback(async () => {
     setError('');
-    if (!identityId) { setError('请选择 Git 账号'); return; }
-    if (!repoUrl.trim()) { setError('请选择或填写代码仓库'); return; }
-    if (!name.trim()) { setError('请填写项目名称'); return; }
+    if (!identityId) { setError('Select a Git account'); return; }
+    if (!repoUrl.trim()) { setError('Select or enter a repository'); return; }
+    if (!name.trim()) { setError('Enter a project name'); return; }
     setSubmitting(true);
     try {
       const project = await createProject({
@@ -238,7 +238,7 @@ export default function NewProjectScreen() {
       if (project?.id) router.replace(`/project/${project.id}`);
       else router.back();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '创建项目失败，请重试');
+      setError(e instanceof ApiError ? e.message : 'Failed to create project. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -250,7 +250,7 @@ export default function NewProjectScreen() {
       <View style={{ paddingTop: insets.top + 6 }}>
         <View style={{ height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
           <View style={{ width: 38 }} />
-          <Text style={{ position: 'absolute', left: 56, right: 56, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>新建项目</Text>
+          <Text style={{ position: 'absolute', left: 56, right: 56, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.tx }}>New project</Text>
           <View style={{ marginLeft: 'auto' }}>
             <IconButton icon="plus" onPress={() => router.back()} iconSize={24} sw={2} style={{ transform: [{ rotate: '45deg' }] }} />
           </View>
@@ -258,37 +258,37 @@ export default function NewProjectScreen() {
       </View>
 
       {loading ? (
-        <LoadingView label="加载中…" />
+        <LoadingView label="Loading…" />
       ) : identities.length === 0 ? (
         // 没有身份：引导先去绑定
         <View style={{ flex: 1 }}>
-          <EmptyView icon="key" title="先绑定一个 Git 账号" subtitle={loadError || '创建项目需要关联代码仓库\n绑定 GitHub / GitLab / Gitee 等账号后即可选择'} />
+          <EmptyView icon="key" title="Link a Git account first" subtitle={loadError || 'Creating a project requires a repository.\nLink GitHub, GitLab, Gitee, or another Git account to continue.'} />
           <View style={{ paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 20 }}>
-            <PrimaryButton block label="去绑定 Git 账号" icon="link" onPress={() => router.push('/git-identities')} />
+            <PrimaryButton block label="Link Git account" icon="link" onPress={() => router.push('/git-identities')} />
           </View>
         </View>
       ) : (
         <>
           <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.pad, paddingTop: 14, paddingBottom: insets.bottom + 110 }} keyboardShouldPersistTaps="handled">
-            <Text style={{ fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: t.tx, marginBottom: 16 }}>关联一个代码仓库</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: t.tx, marginBottom: 16 }}>Link a code repository</Text>
 
             <Card style={{ overflow: 'hidden', marginBottom: 14 }}>
-              <ConfigRow icon="key" label="Git 账号" value={identityValue} placeholder="选择已绑定的账号" onPress={() => setPicking(true)} t={t} />
-              <ConfigRow icon="folder" label="代码仓库" value={repoValue}
-                placeholder={identityId ? '选择仓库' : '请先选择 Git 账号'}
+              <ConfigRow icon="key" label="Git account" value={identityValue} placeholder="Select a linked account" onPress={() => setPicking(true)} t={t} />
+              <ConfigRow icon="folder" label="Repository" value={repoValue}
+                placeholder={identityId ? 'Select repository' : 'Select a Git account first'}
                 onPress={() => { if (!identityId) { setPicking(true); return; } setRepoPickerOpen(true); }} divider t={t} />
             </Card>
 
-            <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600', marginBottom: 8 }}>项目名称</Text>
-            <TextInput value={name} onChangeText={(v) => { setName(v); }} placeholder="给项目起个名字" placeholderTextColor={t.tx3}
+            <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600', marginBottom: 8 }}>Project name</Text>
+            <TextInput value={name} onChangeText={(v) => { setName(v); }} placeholder="Give your project a name" placeholderTextColor={t.tx3}
               editable={!submitting}
               style={{ backgroundColor: t.bg2, borderWidth: 1, borderColor: t.line2, borderRadius: 14, paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 14 : 10, color: t.tx, fontSize: 15.5, ...t.shCard }} />
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5 }}>没有合适的账号？</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5 }}>Need another account?</Text>
               <Pressable onPress={() => router.push('/git-identities')} hitSlop={6} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 4 }, pressed && { opacity: 0.6 }]}>
                 <Icons.plus size={14} color={t.acTx} sw={2.2} />
-                <Text style={{ fontSize: 13, color: t.acTx, fontWeight: '700' }}>管理 Git 账号</Text>
+                <Text style={{ fontSize: 13, color: t.acTx, fontWeight: '700' }}>Manage Git accounts</Text>
               </Pressable>
             </View>
 
@@ -296,13 +296,13 @@ export default function NewProjectScreen() {
           </ScrollView>
 
           <View style={{ paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 14, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg }}>
-            <PrimaryButton block icon={submitting ? undefined : 'check'} label={submitting ? '正在创建…' : '创建项目'} disabled={submitting || !identityId || !repoUrl || !name.trim()} onPress={submit} />
+            <PrimaryButton block icon={submitting ? undefined : 'check'} label={submitting ? 'Creating…' : 'Create project'} disabled={submitting || !identityId || !repoUrl || !name.trim()} onPress={submit} />
           </View>
         </>
       )}
 
       {/* 身份选择 */}
-      <PickerSheet visible={picking} title="选择 Git 账号" options={identityOptions} selected={identityId}
+      <PickerSheet visible={picking} title="Select Git account" options={identityOptions} selected={identityId}
         onPick={onPickIdentity} onClose={() => setPicking(false)} />
 
       <RepoPickerModal

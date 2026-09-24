@@ -29,26 +29,26 @@ import { formatTokens, modelDisplayName, taskDisplayName } from '@/utils/format'
 const ROUNDS_PER_FETCH = 1;
 const POLL_INTERVAL = 10000;
 const TASK_DRAFT_PREFIX = 'monkeycode:task-draft:';
-// 指令：继续/压缩 直接发消息；重启/重置 走控制通道 restart(load_session)
+// 指令：Continue/压缩 直接发消息；重启/重置 走控制通道 restart(load_session)
 type CmdKey = 'continue' | 'skill' | 'compact' | 'restart' | 'reset';
 type Cmd = { key: CmdKey; label: string; tone: 'ac' | 'neutral' | 'amber' | 'red'; icon?: string; desc?: string };
 // composer 里待发送的图片附件：先本地预览，异步上传；status=done 且有 url 才会随消息发出。
 type PendingAtt = { key: string; localUri: string; name: string; status: 'uploading' | 'done' | 'error'; url?: string };
-// 直接展示的常用指令（使用技能会打开技能选择面板）
+// 直接展示的常用指令（使用技能会打开技能Select面板）
 const DIRECT_COMMANDS: Cmd[] = [
-  { key: 'skill', label: '使用技能', tone: 'ac' },
+  { key: 'skill', label: 'Use skill', tone: 'ac' },
 ];
-// composer 上方的常用快捷方式：点一下直接把这句话发出去（和原来的「继续」一样）。
+// composer 上方的常用快捷方式：点一下直接把这句话发出去（和原来的「Continue」一样）。
 const QUICK_PROMPTS: { label: string; text: string }[] = [
-  { label: '继续', text: '继续' },
-  { label: '你决定', text: '你决定' },
-  { label: '提交代码', text: '提交代码' },
+  { label: 'Continue', text: 'Continue' },
+  { label: 'You decide', text: 'You decide' },
+  { label: 'Commit code', text: 'Commit code' },
 ];
 // 收进「⋯ 更多」里的低频/有破坏性的指令，避免误触
 const MORE_COMMANDS: Cmd[] = [
-  { key: 'compact', label: '压缩对话', tone: 'neutral', icon: 'sparkle', desc: '压缩上下文，释放 token 空间' },
-  { key: 'restart', label: '重启 Agent', tone: 'amber', icon: 'refresh', desc: '重启 Agent 并保留当前上下文' },
-  { key: 'reset', label: '重置对话', tone: 'red', icon: 'trash', desc: '清空上下文并重启 Agent' },
+  { key: 'compact', label: 'Compact conversation', tone: 'neutral', icon: 'sparkle', desc: 'Compact context to free token space' },
+  { key: 'restart', label: 'Restart agent', tone: 'amber', icon: 'refresh', desc: 'Restart agent and keep the current context' },
+  { key: 'reset', label: 'Reset conversation', tone: 'red', icon: 'trash', desc: 'Clear context and restart agent' },
 ];
 function cmdTone(tone: string, t: Theme): { bg: string; color: string } {
   switch (tone) {
@@ -61,20 +61,20 @@ function cmdTone(tone: string, t: Theme): { bg: string; color: string } {
 
 // 开发环境（VM）准备阶段的条件 → 文案（对齐 Web getConditionTypeText）
 const CONDITION_LABELS: Record<string, string> = {
-  Scheduled: '正在初始化',
-  ImagePulled: '正在拉取系统镜像',
-  ProjectCloned: '正在克隆代码仓库',
-  ImageBuilt: '正在构建系统镜像',
-  ContainerCreated: '正在创建开发环境',
-  ContainerStarted: '正在启动开发环境',
-  Ready: '开发环境已准备好',
-  Failed: '无法创建开发环境',
+  Scheduled: 'Initializing',
+  ImagePulled: 'Pulling system image',
+  ProjectCloned: 'Cloning repository',
+  ImageBuilt: 'Building system image',
+  ContainerCreated: 'Creating development environment',
+  ContainerStarted: 'Starting development environment',
+  Ready: 'Development environment is ready',
+  Failed: 'Unable to create development environment',
 };
 function taskConditionInfo(task: ProjectTask | null): { label: string; message?: string; failed: boolean } | null {
   const conds = task?.virtualmachine?.conditions;
   if (!conds || conds.length === 0) return null;
   const last = conds[conds.length - 1];
-  return { label: CONDITION_LABELS[last.type ?? ''] ?? '正在准备开发环境', message: last.message, failed: last.type === 'Failed' };
+  return { label: CONDITION_LABELS[last.type ?? ''] ?? 'Preparing development environment', message: last.message, failed: last.type === 'Failed' };
 }
 
 function ctxColor(pct: number, t: Theme): string {
@@ -100,7 +100,7 @@ export default function TaskDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const aiConsent = useAiConsent(); // 进入可交互任务前需先取得 AI 数据处理同意（App Store 2.1）
+  const aiConsent = useAiConsent(); // 进入可交互Task前需先取得 AI 数据处理同意（App Store 2.1）
 
   const [task, setTask] = useState<ProjectTask | null>(null);
   const [historyMessages, setHistoryMessages] = useState<ChatMessage[]>([]);
@@ -222,7 +222,7 @@ export default function TaskDetailScreen() {
         setHasMore(!!rounds.has_more && !!rounds.next_cursor);
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败');
+      setError(e instanceof ApiError ? e.message : 'Failed to load');
     } finally { setLoading(false); }
   }, [id]);
 
@@ -234,7 +234,7 @@ export default function TaskDetailScreen() {
     clientRef.current = client; client.connect();
     return () => {
       // handleSend 会把 clientRef 换成 newRound client（没有任何 effect 持有它）：
-      // 卸载/依赖翻转时一并断开，否则其 socket 和重连梯会向已卸载的组件继续 setLive。
+      // 卸载/依赖翻转时一并断开，否则其 socket 和重连梯会向已卸载的组件Continue setLive。
       const current = clientRef.current;
       if (current && current !== client) current.disconnect();
       client.disconnect();
@@ -263,15 +263,15 @@ export default function TaskDetailScreen() {
   const doSwitchModel = useCallback(async (model: Model) => {
     if (!model.id) return;
     const control = controlRef.current;
-    if (!control || !control.connected) { setToast('控制通道未就绪，请稍候重试'); setTimeout(() => setToast(null), 2200); return; }
+    if (!control || !control.connected) { setToast('Control channel is not ready. Please try again shortly.'); setTimeout(() => setToast(null), 2200); return; }
     setSwitching(true);
     const resp = await control.switchModel(model.id);
     setSwitching(false);
     if (resp?.success) {
       setTask((prev) => (prev ? { ...prev, model: { id: model.id, model: model.model, remark: model.remark } } : prev));
-      setToast(`已切换到 ${modelLabel(model)}`);
+      setToast(`Switched to ${modelLabel(model)}`);
     } else {
-      setToast(resp?.message || resp?.error || '切换失败，请重试');
+      setToast(resp?.message || resp?.error || 'Switch failed. Please try again.');
     }
     setTimeout(() => setToast(null), 2400);
   }, []);
@@ -335,7 +335,7 @@ export default function TaskDetailScreen() {
   useEffect(() => {
     if (typeof ctxSize === 'number' && ctxSize > 0) setLastCtx({ used: ctxUsed ?? 0, size: ctxSize });
   }, [ctxUsed, ctxSize]);
-  // 切换任务时清空（路由复用同一组件实例时也能正确重置）。
+  // 切换Task时清空（路由复用同一组件实例时也能正确重置）。
   useEffect(() => { setLastCtx(null); archivedRoundsRef.current = 0; }, [id]);
 
   // 防重入必须用 ref 同步判断：historyLoading 是异步提交的 state，进入页面时
@@ -362,12 +362,12 @@ export default function TaskDetailScreen() {
     if (cursor && hasMore && !historyLoading && historyMessages.length === 0) void loadEarlier();
   }, [cursor, hasMore, historyLoading, historyMessages.length, loadEarlier]);
 
-  // includeAttachments=false 用于快捷指令（继续 / 压缩等）：只发文字，不带、也不清空已暂存的图片。
+  // includeAttachments=false 用于快捷指令（Continue / 压缩等）：只发文字，不带、也不清空已暂存的图片。
   const handleSend = useCallback((text: string, includeAttachments = true) => {
     const body = text.trim();
     const ready = includeAttachments ? attachmentsRef.current.filter((a) => a.status === 'done' && a.url) : [];
     if (!id || (!body && ready.length === 0)) return;
-    if (includeAttachments && attachmentsRef.current.some((a) => a.status === 'uploading')) { flashToast('图片还在上传中…'); return; }
+    if (includeAttachments && attachmentsRef.current.some((a) => a.status === 'uploading')) { flashToast('Image is still uploading…'); return; }
     const atts = ready.map((a) => ({ url: a.url as string, filename: a.name }));
     // 先断开旧连接再取快照：disconnect() 会同步冲刷 50ms 节流暂扣的尾部 chunk，
     // 其返回值才是完整末态；先快照 liveStateRef 会把这截尾巴永久丢出会话记录。
@@ -398,10 +398,10 @@ export default function TaskDetailScreen() {
   // 选图 → 逐张上传（先占位预览，上传完回填 url）。受 MAX_ATTACHMENTS 张数限制。
   const onAttach = useCallback(async () => {
     const remaining = MAX_ATTACHMENTS - attachmentsRef.current.length;
-    if (remaining <= 0) { flashToast(`最多 ${MAX_ATTACHMENTS} 张图片`); return; }
+    if (remaining <= 0) { flashToast(`Up to ${MAX_ATTACHMENTS} images`); return; }
     let picked;
     try { picked = await pickImages(remaining); }
-    catch { flashToast('无法打开相册'); return; }
+    catch { flashToast('Unable to open Photos'); return; }
     if (!picked.length) return;
     const items = picked.map((img) => ({ key: `a${(attachSeq.current += 1)}`, img }));
     setAttachments((prev) => [...prev, ...items.map(({ key, img }) => ({ key, localUri: img.uri, name: img.name, status: 'uploading' as const }))]);
@@ -412,7 +412,7 @@ export default function TaskDetailScreen() {
         setAttachments((prev) => prev.map((a) => (a.key === key ? { ...a, status: 'done', url: up.url, name: up.filename } : a)));
       } catch (e) {
         setAttachments((prev) => prev.map((a) => (a.key === key ? { ...a, status: 'error' } : a)));
-        flashToast(e instanceof Error ? e.message : '图片上传失败');
+        flashToast(e instanceof Error ? e.message : 'Image upload failed');
       }
     }));
   }, [flashToast]);
@@ -421,17 +421,17 @@ export default function TaskDetailScreen() {
     setAttachments((prev) => prev.filter((a) => a.key !== key));
   }, []);
 
-  // 点对话里的图片 → 确认后保存（用户附件图 + AI 的 markdown 图都走这里）。
+  // 点Conversation里的图片 → 确认后保存（用户附件图 + AI 的 markdown 图都走这里）。
   // 优先存相册（需原生构建里有 expo-media-library）；不可用时回退系统分享。
   const onSaveImage = useCallback((url: string) => {
     if (!url) return;
-    Alert.alert('保存图片', '保存这张图片？', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert('Save image', 'Save this image?', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: '保存',
+        text: 'Save',
         onPress: async () => {
-          try { await saveImageToAlbum(url); flashToast('已保存到相册'); }
-          catch (e) { flashToast(e instanceof Error ? e.message : '保存失败'); }
+          try { await saveImageToAlbum(url); flashToast('Saved to Photos'); }
+          catch (e) { flashToast(e instanceof Error ? e.message : 'Save failed'); }
         },
       },
     ]);
@@ -440,25 +440,25 @@ export default function TaskDetailScreen() {
   const handleCancel = useCallback(() => clientRef.current?.sendCancel(), []);
   const handleAnswer = useCallback((askId: string, answers: AnswerMap): AnswerSubmitResult => {
     const result = clientRef.current?.sendReplyQuestion(askId, answers) ?? 'rejected';
-    if (result === 'rejected') flashToast('连接已断开，回答未发送，请重试');
+    if (result === 'rejected') flashToast('Connection lost. Your response was not sent. Please try again.');
     return result;
   }, [flashToast]);
 
   // 倒置列表里原生选中不可用，长按消息改为弹出可选中文本的面板（在正常层里选词复制 / 复制全部）。
   const [copyText, setCopyText] = useState<string | null>(null);
   const onCopy = useCallback((text: string) => setCopyText(text), []);
-  const onCopyAll = useCallback((text: string) => { void Clipboard.setStringAsync(text); flashToast('已复制'); setCopyText(null); }, [flashToast]);
+  const onCopyAll = useCallback((text: string) => { void Clipboard.setStringAsync(text); flashToast('Copied'); setCopyText(null); }, [flashToast]);
   const copyTaskId = useCallback(() => {
     if (!id) return;
     void Clipboard.setStringAsync(id);
-    flashToast('任务 ID 已复制');
+    flashToast('Task ID Copied');
   }, [flashToast, id]);
 
-  // 本任务是否有一个“已收起”的预览（用于把 composer 的「在线预览」条变成展开入口）
+  // 本Task是否有一个“已收起”的预览（用于把 composer 的「在线预览」条变成Expand入口）
   const previewMinimized = !!preview && preview.taskId === id && preview.minimized;
   // 在应用内浏览器打开某个 URL（新建/切换全局预览）
   const openInBrowser = useCallback((url: string) => { setPreviewOpen(false); if (id) openPreviewUrl(url, id); }, [id, openPreviewUrl]);
-  // 预览入口：多端口 → 始终弹出选择（这样开了一个之后还能换别的端口）；单端口且已收起 → 展开；否则直接打开。
+  // 预览入口：多端口 → 始终弹出Select（这样开了一个之后还能换别的端口）；单端口且已收起 → Expand；否则直接打开。
   const openPreview = useCallback(() => {
     const accessible = previewPorts.filter((p) => p.access_url);
     if (accessible.length > 1) { setPreviewOpen(true); void refreshPorts(); return; }
@@ -484,27 +484,27 @@ export default function TaskDetailScreen() {
 
   const doRestart = useCallback(async (loadSession: boolean) => {
     const control = controlRef.current;
-    if (!control || !control.connected) { flashToast('控制通道未就绪，请稍候重试'); return; }
+    if (!control || !control.connected) { flashToast('Control channel is not ready. Please try again shortly.'); return; }
     setRestartBusy(loadSession ? 'restart' : 'reset');
     const resp = await control.restart(loadSession);
     setRestartBusy(null);
-    if (resp?.success) flashToast(loadSession ? '已重启 Agent' : '已重启并清空上下文');
-    else flashToast(resp?.message || resp?.error || '操作失败，请重试');
+    if (resp?.success) flashToast(loadSession ? 'Agent restarted' : 'Agent restarted and context cleared');
+    else flashToast(resp?.message || resp?.error || 'Action failed. Please try again.');
   }, [flashToast]);
 
   const onCmd = useCallback((key: CmdKey) => {
     if (restartBusy) return;
-    if (key === 'continue') handleSend('继续', false);
+    if (key === 'continue') handleSend('Continue', false);
     else if (key === 'compact') handleSend('/compact', false);
     else if (key === 'skill') {
-      if ((liveStateRef.current?.availableCommands?.length ?? 0) === 0) { flashToast('当前没有可用技能指令'); return; }
+      if ((liveStateRef.current?.availableCommands?.length ?? 0) === 0) { flashToast('No skill commands are available'); return; }
       setSkillPickerOpen(true);
     }
     else if (key === 'restart') doRestart(true);
     else if (key === 'reset') {
-      Alert.alert('重启并清空上下文', '将清空当前对话上下文并重启 Agent，确定继续？', [
-        { text: '取消', style: 'cancel' },
-        { text: '清空并重启', style: 'destructive', onPress: () => doRestart(false) },
+      Alert.alert('Restart and clear context', 'This will clear the current conversation context and restart the agent. Continue?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Clear and restart', style: 'destructive', onPress: () => doRestart(false) },
       ]);
     }
   }, [restartBusy, handleSend, doRestart, flashToast]);
@@ -516,7 +516,7 @@ export default function TaskDetailScreen() {
   );
   const messages = useMemo(() => {
     const history = historyMessages.map((m) => normalizeAskStatus(m, true));
-    // 轮次边界裁剪：进入运行中任务时，REST 拉取/本地归档的历史可能与 attach 回放
+    // 轮次边界裁剪：进入运行中Task时，REST 拉取/本地归档的历史可能与 attach 回放
     // 在当前轮开头重叠（解码 id 每次新生成，无法按 id 去重），重叠会让本轮的
     // user input 和已有输出重复一份、视觉上夹在输出中间。以实时流第一条带时间戳
     // 消息为界，时间不早于它的历史消息一律裁掉（属于活跃轮，以实时流为准）。
@@ -527,7 +527,7 @@ export default function TaskDetailScreen() {
     return [...trimmed, ...liveMessages];
   }, [historyMessages, liveMessages]);
   // 倒置列表：最新在前（视觉底部）。新消息进 data[0]（底部）、历史从 data 末尾（视觉顶部）追加。
-  // 初始定位底部、流式吸底、上滑加载历史、展开 toolcall 都由 inverted 天然处理，无需手动 scrollToEnd。
+  // 初始定位底部、流式吸底、上滑加载历史、Expand toolcall 都由 inverted 天然处理，无需手动 scrollToEnd。
   const reversed = useMemo(() => messages.slice().reverse(), [messages]);
   const reversedRef = useRef(reversed);
   reversedRef.current = reversed;
@@ -557,12 +557,12 @@ export default function TaskDetailScreen() {
   const canSwitchModel = !!interactive && !roundRunning && models.length > 0;
   const anyUploading = attachments.some((a) => a.status === 'uploading');
   const canSend = !!input.trim() || attachments.some((a) => a.status === 'done');
-  const title = task ? taskDisplayName(task, '任务详情') : '任务详情';
+  const title = task ? taskDisplayName(task, 'Task details') : 'Task details';
 
   // 上下文用量是“事件驱动”的：仅当收到 usage_update（size>0）时才更新；新一轮会重建 handler 把
   // contextUsage 清空，所以这里把最近一次有效用量持久化在组件里，发消息/换轮时不再闪回空白。
   const ctxPct = lastCtx ? Math.min(1, Math.max(0, lastCtx.used / lastCtx.size)) : 0;
-  const modelName = modelDisplayName(task?.model) || '对话';
+  const modelName = modelDisplayName(task?.model) || 'Conversation';
   const tokens = task?.stats?.total_tokens;
 
   const availableCommands = liveState?.availableCommands ?? [];
@@ -617,8 +617,8 @@ export default function TaskDetailScreen() {
     </Glass>
   );
 
-  if (loading) return <View style={{ flex: 1, backgroundColor: t.bg }}><LoadingView label="加载任务详情…" /></View>;
-  if (error && !task) return <View style={{ flex: 1, backgroundColor: t.bg }}><EmptyView title="加载失败" subtitle={error} icon="alert" /></View>;
+  if (loading) return <View style={{ flex: 1, backgroundColor: t.bg }}><LoadingView label="Loading task details…" /></View>;
+  if (error && !task) return <View style={{ flex: 1, backgroundColor: t.bg }}><EmptyView title="Failed to load" subtitle={error} icon="alert" /></View>;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.bg }} behavior="padding">
@@ -628,14 +628,14 @@ export default function TaskDetailScreen() {
             {startCond?.failed
               ? <Icons.alert size={30} color={t.red} sw={2.2} />
               : <Spinner size={30} color={t.ac} sw={2.4} />}
-            <Text style={{ color: startCond?.failed ? t.red : t.tx, fontSize: 17, fontWeight: '600' }}>{startCond?.label ?? '任务正在启动…'}</Text>
+            <Text style={{ color: startCond?.failed ? t.red : t.tx, fontSize: 17, fontWeight: '600' }}>{startCond?.label ?? 'Task is starting…'}</Text>
             <Text style={{ color: t.tx2, fontSize: 13, textAlign: 'center', lineHeight: 19 }}>
-              {startCond?.message || '正在准备云开发环境，启动完成后即可开始对话'}
+              {startCond?.message || 'Preparing the cloud development environment. You can start the conversation when it is ready.'}
             </Text>
           </View>
         ) : messages.length === 0 ? (
-          interactive ? <View style={{ flex: 1, paddingTop: headerH }}><LoadingView label="连接对话中…" /></View>
-            : <View style={{ flex: 1, paddingTop: headerH }}><EmptyView title="暂无对话" subtitle="该任务没有可展示的对话记录" /></View>
+          interactive ? <View style={{ flex: 1, paddingTop: headerH }}><LoadingView label="Connecting to conversation…" /></View>
+            : <View style={{ flex: 1, paddingTop: headerH }}><EmptyView title="No conversation" subtitle="This task has no conversation history to display" /></View>
         ) : (
           <FlatList
             ref={listRef}
@@ -672,12 +672,12 @@ export default function TaskDetailScreen() {
             // 在线预览入口：开发环境一旦监听端口就出现在输入框正上方，醒目、高频、一步直达。
             <Pressable onPress={openPreview} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.acGhost, borderWidth: 1, borderColor: t.acLine, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 10 }, pressed && { opacity: 0.7 }]}>
               <Icons.globe size={16} color={t.acTx} sw={2} />
-              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>在线预览</Text>
+              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>Live preview</Text>
               <Text numberOfLines={1} style={{ flex: 1, color: t.tx3, fontSize: 12, fontFamily: 'monospace' }}>
-                {previewPorts.length === 1 ? `端口 ${previewPorts[0].port}` : `端口 ${previewPorts.slice(0, 2).map((p) => p.port).join(' · ')}${previewPorts.length > 2 ? ` +${previewPorts.length - 2}` : ''}`}
+                {previewPorts.length === 1 ? `Port ${previewPorts[0].port}` : `Port ${previewPorts.slice(0, 2).map((p) => p.port).join(' · ')}${previewPorts.length > 2 ? ` +${previewPorts.length - 2}` : ''}`}
               </Text>
               {previewPorts.length > 1 ? <View style={{ minWidth: 18, height: 18, borderRadius: 99, backgroundColor: t.ac, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 }}><Text style={{ fontSize: 10.5, fontWeight: '800', color: t.acInk }}>{previewPorts.length}</Text></View> : null}
-              <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>{previewPorts.length > 1 ? '选择' : previewMinimized ? '展开' : '访问'}</Text>
+              <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>{previewPorts.length > 1 ? 'Select' : previewMinimized ? 'Expand' : 'Open'}</Text>
               {(previewMinimized && previewPorts.length <= 1)
                 ? <Icons.chevron size={14} color={t.acTx} sw={2.4} style={{ transform: [{ rotate: '-90deg' }] }} />
                 : <Icons.arrowRight size={13} color={t.acTx} sw={2.4} />}
@@ -687,7 +687,7 @@ export default function TaskDetailScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 9, paddingVertical: 2 }}>
               <Spinner size={14} color={t.acTx} sw={2.2} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>AI 正在处理</Text>
+                <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>AI is processing</Text>
                 <TypingDots color={t.acTx} />
               </View>
               {roundStartMs ? <RunTimer startMs={roundStartMs} style={{ marginLeft: 'auto', color: t.tx3 }} /> : null}
@@ -699,7 +699,7 @@ export default function TaskDetailScreen() {
                 : <View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: t.red }} />}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                 <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>
-                  {speech.status === 'connecting' ? '正在连接语音服务' : speech.status === 'stopping' ? '正在转写' : '正在录音，点击结束'}
+                  {speech.status === 'connecting' ? 'Connecting to voice service' : speech.status === 'stopping' ? 'Transcribing' : 'Recording. Tap to stop'}
                 </Text>
                 {speech.status === 'connecting' || speech.status === 'stopping' ? <TypingDots color={t.acTx} /> : null}
               </View>
@@ -727,7 +727,7 @@ export default function TaskDetailScreen() {
               <Pressable disabled={!!restartBusy} onPress={() => setMoreOpen(true)}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 9, backgroundColor: t.bg4, marginLeft: 8, opacity: restartBusy ? 0.5 : 1 }}>
                 {restartBusy ? <Spinner size={13} color={t.tx2} sw={2} /> : <Icons.more size={17} color={t.tx2} sw={2} />}
-                <Text style={{ color: t.tx2, fontSize: 12.5, fontWeight: '600' }}>更多</Text>
+                <Text style={{ color: t.tx2, fontSize: 12.5, fontWeight: '600' }}>More</Text>
               </Pressable>
             </View>
           )}
@@ -760,7 +760,7 @@ export default function TaskDetailScreen() {
               </Pressable>
               <TextInput value={input} onChangeText={setUserInput} editable={!roundRunning && !sending && !speech.active}
                 onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)}
-                placeholder={speech.active ? '请说话…' : roundRunning ? '' : '继续这个任务…'} placeholderTextColor={speech.active ? t.acTx : t.tx3}
+                placeholder={speech.active ? 'Speak…' : roundRunning ? '' : 'Continue this task…'} placeholderTextColor={speech.active ? t.acTx : t.tx3}
                 multiline style={{ flex: 1, color: t.tx, fontSize: 15, paddingVertical: 11, maxHeight: 120 }} />
               <MicButton status={speech.status} active={speech.active} onPress={onMic} disabled={roundRunning} idleColor={t.tx3} />
             </View>
@@ -774,29 +774,29 @@ export default function TaskDetailScreen() {
         </Glass>
       ) : starting ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg2 }}>
-          <Spinner size={15} color={t.ac} sw={2.2} /><Text style={{ color: t.tx2, fontSize: 13 }}>任务正在启动，请稍候</Text><TypingDots color={t.tx2} />
+          <Spinner size={15} color={t.ac} sw={2.2} /><Text style={{ color: t.tx2, fontSize: 13 }}>Task is starting. Please wait</Text><TypingDots color={t.tx2} />
         </View>
       ) : (
         <View style={{ alignItems: 'center', paddingVertical: 14, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg2 }}>
-          <Text style={{ color: t.tx3, fontSize: 13 }}>任务已结束，无法继续对话</Text>
+          <Text style={{ color: t.tx3, fontSize: 13 }}>Task has ended and cannot continue the conversation</Text>
         </View>
       )}
 
-      <ModelSheet visible={modelPickerOpen} title="切换模型" models={models} selectedId={task?.model?.id ?? ''} plan={plan} onPick={requestSwitchModel} onClose={() => setModelPickerOpen(false)} />
+      <ModelSheet visible={modelPickerOpen} title="Switch model" models={models} selectedId={task?.model?.id ?? ''} plan={plan} onPick={requestSwitchModel} onClose={() => setModelPickerOpen(false)} />
       <SkillSheet visible={skillPickerOpen} commands={availableCommands} onPick={pickSkill} onClose={() => setSkillPickerOpen(false)} />
       <FilesPanel visible={filesOpen} onClose={() => setFilesOpen(false)} control={controlRef.current} initialChanges={fileChanges} vmId={task?.virtualmachine?.id} />
       <PreviewSheet visible={previewOpen} ports={previewPorts} refreshing={portsRefreshing} activeUrl={preview && preview.taskId === id ? preview.url : undefined} onOpen={openInBrowser} onRefresh={refreshPorts} onClose={() => setPreviewOpen(false)} />
       <CopySheet visible={copyText != null} text={copyText ?? ''} onClose={() => setCopyText(null)} onCopyAll={onCopyAll} />
 
-      {/* AI 数据处理同意：进入可交互（可对话）任务且未同意时弹出，未同意则退出该页 */}
+      {/* AI 数据处理同意：进入可交互（可Conversation）Task且未同意时弹出，未同意则退出该页 */}
       <AiConsentModal visible={interactive && aiConsent.status === 'needed'} onAgree={aiConsent.grant} onDecline={() => router.back()} />
 
-      {/* ⋯ 更多操作：低频/破坏性指令，点开后选择，避免误触 */}
+      {/* ⋯ 更多操作：低频/破坏性指令，点开后Select，避免误触 */}
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)} statusBarTranslucent>
         <Scrim onPress={() => setMoreOpen(false)} />
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.bg2, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line2, paddingBottom: insets.bottom + 14, ...t.shLift }}>
           <View style={{ width: 38, height: 4, borderRadius: 99, backgroundColor: t.line2, alignSelf: 'center', marginTop: 10, marginBottom: 8 }} />
-          <Text style={{ paddingHorizontal: 18, paddingBottom: 6, fontSize: 17, fontWeight: '700', color: t.tx }}>更多操作</Text>
+          <Text style={{ paddingHorizontal: 18, paddingBottom: 6, fontSize: 17, fontWeight: '700', color: t.tx }}>More actions</Text>
           <View style={{ paddingHorizontal: 12, paddingTop: 2 }}>
             {MORE_COMMANDS.map((c) => {
               const tone = cmdTone(c.tone, t);

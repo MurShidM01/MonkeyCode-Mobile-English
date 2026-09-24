@@ -27,7 +27,7 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "用于语音输入，将你的语音实时转写为文字",
+        "NSMicrophoneUsageDescription": "Used for voice input and live speech-to-text.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
           "NSAllowsLocalNetworking": true
@@ -72,13 +72,13 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "用于选择图片作为对话附件发送给 AI"
+          "photosPermission": "Used to choose images as attachments for AI conversations."
         }
       ],
       [
         "expo-media-library",
         {
-          "savePhotosPermission": "用于把对话中的图片保存到相册",
+          "savePhotosPermission": "Used to save conversation images to your photo library.",
           "photosPermission": false,
           "isAccessMediaLocationEnabled": false
         }

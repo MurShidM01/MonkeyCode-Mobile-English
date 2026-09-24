@@ -1,8 +1,8 @@
 /**
- * 应用内浏览器（在线预览）。用 react-native-webview 在 App 内打开开发环境的预览地址。
+ * 应用内浏览器（Live preview）。用 react-native-webview 在 App 内打开开发环境的预览地址。
  * 关闭分两种：
  *   - 收起（minimize）：面板滑到屏幕外但 WebView 保持挂载，再次展开秒回、无需重载；
- *     收起后由 composer 上方的「在线预览」条充当最小化入口，点它即可重新展开。
+ *     收起后由 composer 上方的「Live preview」条充当最小化入口，点它即可重新展开。
  *   - 真正关闭（onClose）：卸载 WebView。
  * 预览地址是独立公网 URL，不携带 MonkeyCode 的会话 Cookie / Basic Auth（避免 cookie 泄漏到预览域名）。
  */
@@ -62,7 +62,7 @@ export function PreviewBrowser({ url, minimized, onMinimize, onClose }: {
             <Icons.chevron size={21} color={t.tx} sw={2.2} style={{ transform: [{ rotate: '90deg' }] }} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
-            <Text numberOfLines={1} style={{ fontSize: 13.5, fontWeight: '700', color: t.tx }}>在线预览</Text>
+            <Text numberOfLines={1} style={{ fontSize: 13.5, fontWeight: '700', color: t.tx }}>Live preview</Text>
             <Text numberOfLines={1} style={{ fontSize: 11, color: t.tx3, fontFamily: 'monospace', maxWidth: '100%' }}>{hostOf(url)}</Text>
           </View>
           <Pressable onPress={() => ref.current?.reload()} hitSlop={8} style={{ padding: 8 }}><Icons.refresh size={18} color={t.tx2} sw={2} /></Pressable>

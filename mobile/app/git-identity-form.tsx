@@ -1,8 +1,8 @@
 /**
- * 绑定 / 编辑 Git 账号 —— 对齐 Web add-identity.tsx 与 edit-identity.tsx。
+ * 绑定 / Edit Git account —— 对齐 Web add-identity.tsx 与 edit-identity.tsx。
  *  - 新增（无 id）：选平台 + 填 Access Token/用户名/邮箱/备注，自动带出默认 Base URL。
  *  - 编辑（带 ?id=）：回填该身份；platform / base_url 锁定不可改；用户名/邮箱/备注可改；
- *    Access Token 留空表示不修改。GitHub App 安装的身份（is_installation_app）隐藏 token 字段。
+ *    Access Token Leave blank to keep unchanged。GitHub App 安装的身份（is_installation_app）隐藏 token 字段。
  * 保存成功后返回，身份列表在 focus 时刷新。
  */
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -58,7 +58,7 @@ export default function GitIdentityFormScreen() {
         if (!active) return;
         const it = list.find((x) => x.id === params.id);
         if (!it) {
-          Alert.alert('账号不存在', '该 Git 账号可能已被移除。');
+          Alert.alert('Account not found', 'This Git account may have been removed.');
           leave();
           return;
         }
@@ -72,7 +72,7 @@ export default function GitIdentityFormScreen() {
       })
       .catch((e) => {
         if (!active) return;
-        Alert.alert('加载失败', e instanceof ApiError ? e.message : '请稍后重试');
+        Alert.alert('Failed to load', e instanceof ApiError ? e.message : 'Please try again later');
         leave();
       });
     return () => { active = false; };
@@ -111,13 +111,13 @@ export default function GitIdentityFormScreen() {
 
   const onSave = useCallback(async () => {
     if (saving) return;
-    if (!platform) { Alert.alert('提示', '请选择 Git 平台类型'); return; }
-    if (!baseUrl.trim()) { Alert.alert('提示', '请输入 Git 平台地址'); return; }
-    if (tokenRequired && showTokenField && !accessToken.trim()) { Alert.alert('提示', '请输入 Access Token'); return; }
-    if (!username.trim()) { Alert.alert('提示', '请输入用户名'); return; }
-    if (!isValidUsername(username.trim())) { Alert.alert('提示', '用户名不能包含括号、引号等特殊字符'); return; }
-    if (!email.trim()) { Alert.alert('提示', '请输入邮箱地址'); return; }
-    if (!isValidEmail(email.trim())) { Alert.alert('提示', '请输入有效的邮箱地址'); return; }
+    if (!platform) { Alert.alert('Notice', 'Select a Git platform'); return; }
+    if (!baseUrl.trim()) { Alert.alert('Notice', 'Enter the Git platform URL'); return; }
+    if (tokenRequired && showTokenField && !accessToken.trim()) { Alert.alert('Notice', 'Enter an Access Token'); return; }
+    if (!username.trim()) { Alert.alert('Notice', 'Enter a username'); return; }
+    if (!isValidUsername(username.trim())) { Alert.alert('Notice', 'Username cannot contain brackets, quotes, or other special characters'); return; }
+    if (!email.trim()) { Alert.alert('Notice', 'Enter an email address'); return; }
+    if (!isValidEmail(email.trim())) { Alert.alert('Notice', 'Enter a valid email address'); return; }
 
     setSaving(true);
     try {
@@ -141,7 +141,7 @@ export default function GitIdentityFormScreen() {
       }
       leave();
     } catch (e) {
-      Alert.alert(editing ? '保存失败' : '绑定失败', e instanceof ApiError ? e.message : '请检查信息后重试');
+      Alert.alert(editing ? 'Save failed' : 'Link failed', e instanceof ApiError ? e.message : 'Please check the information and try again');
     } finally {
       setSaving(false);
     }
@@ -155,8 +155,8 @@ export default function GitIdentityFormScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: t.bg }}>
-        <LoadingView label="加载账号…" />
-        <GlassNav title="编辑 Git 账号" onBack={leave} />
+        <LoadingView label="Loading account…" />
+        <GlassNav title="Edit Git account" onBack={leave} />
       </View>
     );
   }
@@ -168,7 +168,7 @@ export default function GitIdentityFormScreen() {
           contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 110 }}
           keyboardShouldPersistTaps="handled"
         >
-          {label('Git 平台类型', 0)}
+          {label('Git platform', 0)}
           <Pressable onPress={() => setPlatformPicking(true)} disabled={saving || lockPlatform} style={({ pressed }) => [{
             flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: lockPlatform ? t.bg4 : t.bg3, borderWidth: 1, borderColor: t.line2,
             borderRadius: 14, paddingHorizontal: 14, height: 50,
@@ -177,29 +177,29 @@ export default function GitIdentityFormScreen() {
               <PlatIcon size={17} color={platform ? t.acTx : t.tx3} sw={1.8} />
             </View>
             <Text style={{ flex: 1, fontSize: 15, fontWeight: platform ? '600' : '400', color: platform ? (lockPlatform ? t.tx2 : t.tx) : t.tx3 }}>
-              {platform ? gitPlatformLabel(platform) : '请选择平台'}
+              {platform ? gitPlatformLabel(platform) : 'Select platform'}
             </Text>
             {lockPlatform
               ? <Icons.shield size={15} color={t.tx3} sw={1.8} />
               : <Icons.chevron size={17} color={t.tx3} sw={1.9} style={{ transform: [{ rotate: '90deg' }] }} />}
           </Pressable>
 
-          {label('Git 平台地址')}
-          <TextInput value={baseUrl} onChangeText={setBaseUrl} placeholder={platformDef?.defaultBaseUrl || '例如：https://gitlab.com'}
+          {label('Git platform URL')}
+          <TextInput value={baseUrl} onChangeText={setBaseUrl} placeholder={platformDef?.defaultBaseUrl || 'e.g. https://gitlab.com'}
             placeholderTextColor={t.tx3} autoCapitalize="none" autoCorrect={false} keyboardType="url" editable={!saving && !lockPlatform}
             style={fieldStyle('baseUrl', lockPlatform)} {...focusProps('baseUrl')} />
 
           {showTokenField ? (
             <>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 8 }}>
-                <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>Access Token{editing ? <Text style={{ color: t.tx3, fontWeight: '400' }}>（留空不修改）</Text> : null}</Text>
+                <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>Access Token{editing ? <Text style={{ color: t.tx3, fontWeight: '400' }}>(leave blank to keep unchanged)</Text> : null}</Text>
                 <Pressable onPress={() => Linking.openURL(TOKEN_DOC_URL).catch(() => undefined)} hitSlop={6} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 4 }, pressed && { opacity: 0.6 }]}>
                   <Icons.alert size={13} color={t.tx2} sw={1.8} />
-                  <Text style={{ fontSize: 12.5, color: t.tx2, fontWeight: '600' }}>如何获取</Text>
+                  <Text style={{ fontSize: 12.5, color: t.tx2, fontWeight: '600' }}>How to get one</Text>
                 </Pressable>
               </View>
               <View style={[fieldStyle('token'), { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingRight: 6 }]}>
-                <TextInput value={accessToken} onChangeText={setAccessToken} placeholder={editing ? '留空表示不修改' : '请输入 Access Token'} placeholderTextColor={t.tx3}
+                <TextInput value={accessToken} onChangeText={setAccessToken} placeholder={editing ? 'Leave blank to keep unchanged' : 'Enter an Access Token'} placeholderTextColor={t.tx3}
                   secureTextEntry={!showToken} autoCapitalize="none" autoCorrect={false} editable={!saving}
                   style={{ flex: 1, color: t.tx, fontSize: 15, paddingVertical: Platform.OS === 'ios' ? 13 : 9 }} {...focusProps('token')} />
                 <Pressable onPress={() => setShowToken((v) => !v)} hitSlop={8} style={{ padding: 8 }}>
@@ -209,33 +209,33 @@ export default function GitIdentityFormScreen() {
             </>
           ) : null}
 
-          {label('用户名')}
-          <TextInput value={username} onChangeText={setUsername} placeholder="Git 平台用户名" placeholderTextColor={t.tx3}
+          {label('Username')}
+          <TextInput value={username} onChangeText={setUsername} placeholder="Git platform username" placeholderTextColor={t.tx3}
             autoCapitalize="none" autoCorrect={false} editable={!saving} style={fieldStyle('username')} {...focusProps('username')} />
 
-          {label('邮箱')}
-          <TextInput value={email} onChangeText={setEmail} placeholder="提交代码用的邮箱地址" placeholderTextColor={t.tx3}
+          {label('Email')}
+          <TextInput value={email} onChangeText={setEmail} placeholder="Email used for commits" placeholderTextColor={t.tx3}
             autoCapitalize="none" autoCorrect={false} keyboardType="email-address" editable={!saving}
             style={fieldStyle('email')} {...focusProps('email')} />
 
-          {label('备注（选填）')}
-          <TextInput value={remark} onChangeText={setRemark} placeholder="便于区分多个账号，如「我的 GitHub」" placeholderTextColor={t.tx3}
+          {label('Note (optional)')}
+          <TextInput value={remark} onChangeText={setRemark} placeholder="For example, “My GitHub”" placeholderTextColor={t.tx3}
             editable={!saving} style={fieldStyle('remark')} {...focusProps('remark')} />
 
           <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 14, lineHeight: 17 }}>
             {isInstallationApp
-              ? '该账号通过 GitHub App 安装，访问凭证由 App 自动管理，无需手动填写 Token。'
-              : 'Token 用于在 Git 仓库中拉取与提交代码，请使用具备仓库读写权限的 Access Token。'}
+              ? 'This account uses a GitHub App installation. Credentials are managed automatically; no token is required.'
+              : 'The token is used to pull and commit code. Use an Access Token with repository read/write permission.'}
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <GlassNav title={editing ? '编辑 Git 账号' : '绑定 Git 账号'} onBack={leave} />
+      <GlassNav title={editing ? 'Edit Git account' : 'Link Git account'} onBack={leave} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label={saving ? '保存中…' : editing ? '保存修改' : '保存并绑定'} icon={saving ? undefined : 'check'} disabled={saving} onPress={onSave} />
+        <PrimaryButton block label={saving ? 'Saving…' : editing ? 'Save changes' : 'Save and link'} icon={saving ? undefined : 'check'} disabled={saving} onPress={onSave} />
       </View>
 
-      <PickerSheet visible={platformPicking} title="选择 Git 平台" options={platformOptions} selected={platform || undefined}
+      <PickerSheet visible={platformPicking} title="Select Git platform" options={platformOptions} selected={platform || undefined}
         onPick={pickPlatform} onClose={() => setPlatformPicking(false)} />
     </View>
   );

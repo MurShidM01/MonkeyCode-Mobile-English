@@ -8,9 +8,9 @@ import { Icons } from '@/components/Icons';
 import { useTheme } from '@/theme';
 
 const TAB_META: Record<string, { label: string; icon: string }> = {
-  tasks: { label: '任务', icon: 'tasks' },
-  projects: { label: '项目', icon: 'folder' },
-  profile: { label: '我的', icon: 'user' },
+  tasks: { label: 'Tasks', icon: 'tasks' },
+  projects: { label: 'Projects', icon: 'folder' },
+  profile: { label: 'Profile', icon: 'user' },
 };
 
 function GlassDock({ state, navigation }: { state: any; navigation: any }) {
@@ -53,7 +53,7 @@ function GlassDock({ state, navigation }: { state: any; navigation: any }) {
 
 export default function TabsLayout() {
   // 登录后进入首页（tab 区）首次提示 AI 数据处理同意（App Store 2.1）。已同意则不再弹；
-  // 「暂不使用」仅本次关闭（下次启动再问），真正的硬拦截在任务会话页/新建任务页。
+  // 「暂不使用」仅本次关闭（下次启动再问），真正的硬拦截在Tasks会话页/新建Tasks页。
   const aiConsent = useAiConsent();
   const [consentDismissed, setConsentDismissed] = useState(false);
   return (

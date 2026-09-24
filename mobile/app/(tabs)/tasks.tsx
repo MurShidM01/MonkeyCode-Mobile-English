@@ -13,8 +13,8 @@ import { spacing, useTheme } from '@/theme';
 const PAGE_SIZE = 20;
 
 const FILTERS = [
-  { k: 'running', label: '进行中', status: 'pending,processing' },
-  { k: 'done', label: '已结束', status: 'finished,error' },
+  { k: 'running', label: 'Running', status: 'pending,processing' },
+  { k: 'done', label: 'Finished', status: 'finished,error' },
 ];
 const statusFor = (k: string) => FILTERS.find((f) => f.k === k)?.status ?? '';
 
@@ -45,7 +45,7 @@ export default function TasksScreen() {
       setHasMore(list.length >= PAGE_SIZE);
       setPage(pageNum);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败');
+      setError(e instanceof ApiError ? e.message : 'Failed to load');
       if (mode !== 'more') setTasks([]);
     } finally {
       loadingRef.current = false;
@@ -62,7 +62,7 @@ export default function TasksScreen() {
     fetchPage(1, 'first', statusFor(filter));
   }, [filter, fetchPage]);
 
-  // 从新建任务等页面返回时静默刷新当前筛选
+  // 从新建Tasks等页面返回时静默刷新当前筛选
   const didMountRef = useRef(false);
   useFocusEffect(
     useCallback(() => {
@@ -79,28 +79,28 @@ export default function TasksScreen() {
   const removeTask = useCallback((id: string) => setTasks((prev) => prev.filter((x) => x.id !== id)), []);
 
   const confirmStop = useCallback((task: ProjectTask) => {
-    Alert.alert('终止任务', `确定终止「${taskDisplayName(task)}」？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '终止', style: 'destructive', onPress: async () => {
+    Alert.alert('Stop task', `Stop “${taskDisplayName(task)}”?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Stop', style: 'destructive', onPress: async () => {
         try { await stopTask(task.id); removeTask(task.id); }
-        catch (e) { Alert.alert('终止失败', e instanceof ApiError ? e.message : '请稍后重试'); }
+        catch (e) { Alert.alert('Failed to stop task', e instanceof ApiError ? e.message : 'Please try again later'); }
       } },
     ]);
   }, [removeTask]);
 
   const confirmDelete = useCallback((task: ProjectTask) => {
-    Alert.alert('删除任务', `删除「${taskDisplayName(task)}」？此操作不可恢复。`, [
-      { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: async () => {
+    Alert.alert('Delete task', `Delete “${taskDisplayName(task)}”? This action cannot be undone.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
         try { await deleteTask(task.id); removeTask(task.id); }
-        catch (e) { Alert.alert('删除失败', e instanceof ApiError ? e.message : '请稍后重试'); }
+        catch (e) { Alert.alert('Delete failed', e instanceof ApiError ? e.message : 'Please try again later'); }
       } },
     ]);
   }, [removeTask]);
 
   const Header = (
     <View>
-      <BigTitle title="智能任务" />
+      <BigTitle title="Tasks" />
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: 8 }}>
         {FILTERS.map((f) => {
           const on = filter === f.k;
@@ -121,9 +121,9 @@ export default function TasksScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const running = item.status === 'pending' || item.status === 'processing';
-          const del = { key: 'delete', label: '删除', icon: 'trash', color: '#fff', bg: t.red, onPress: () => confirmDelete(item) };
+          const del = { key: 'delete', label: 'Delete', icon: 'trash', color: '#fff', bg: t.red, onPress: () => confirmDelete(item) };
           const actions = running
-            ? [{ key: 'stop', label: '终止', icon: 'stop', color: '#fff', bg: t.amber, onPress: () => confirmStop(item) }, del]
+            ? [{ key: 'stop', label: 'Stop', icon: 'stop', color: '#fff', bg: t.amber, onPress: () => confirmStop(item) }, del]
             : [del];
           return (
             <View style={{ paddingHorizontal: spacing.pad }}>
@@ -144,20 +144,20 @@ export default function TasksScreen() {
         onEndReachedThreshold={0.4}
         ListEmptyComponent={
           fetching ? (
-            <View style={{ paddingTop: 60 }}><LoadingView label="加载任务…" /></View>
+            <View style={{ paddingTop: 60 }}><LoadingView label="Loading tasks…" /></View>
           ) : error ? (
-            <View style={{ paddingTop: 40 }}><EmptyView title="加载失败" subtitle={error} icon="alert" /></View>
+            <View style={{ paddingTop: 40 }}><EmptyView title="Failed to load" subtitle={error} icon="alert" /></View>
           ) : (
-            <View style={{ paddingTop: 40 }}><EmptyView title={filter === 'running' ? '没有进行中的任务' : '还没有已结束的任务'} subtitle={filter === 'running' ? '点右下角 + 发起一个 AI 任务' : undefined} /></View>
+            <View style={{ paddingTop: 40 }}><EmptyView title={filter === 'running' ? 'No running tasks' : 'No finished tasks yet'} subtitle={filter === 'running' ? 'Tap + to start an AI task' : undefined} /></View>
           )
         }
         ListFooterComponent={
           loadingMore ? <View style={{ paddingVertical: 20, alignItems: 'center' }}><ActivityIndicator color={t.ac} /></View>
-            : !hasMore && tasks.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>没有更多了</Text>
+            : !hasMore && tasks.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>No more</Text>
             : null
         }
       />
-      <GlassTop title="任务" collapsed={collapsed} />
+      <GlassTop title="Tasks" collapsed={collapsed} />
     </View>
   );
 }

@@ -39,7 +39,7 @@ export function Scrim({ onPress }: { onPress?: () => void }) {
   return <Pressable style={{ flex: 1 }} onPress={onPress} />;
 }
 
-// ── 执行计时：从本轮开始时间起按 ~0.2s 刷新，显示「耗时 X.X 秒」（对齐 web 端）─────
+// ── 执行计时：从本轮开始时间起按 ~0.2s 刷新，显示「Elapsed X.X sec」（对齐 web 端）─────
 export function RunTimer({ startMs, style }: { startMs: number; style?: StyleProp<TextStyle> }) {
   const t = useTheme();
   const [now, setNow] = React.useState(() => Date.now());
@@ -48,10 +48,10 @@ export function RunTimer({ startMs, style }: { startMs: number; style?: StylePro
     return () => clearInterval(id);
   }, []);
   const sec = Math.max(0, (now - startMs) / 1000);
-  return <Text style={[{ color: t.tx3, fontSize: 12, fontFamily: 'monospace' }, style]}>耗时 {sec.toFixed(1)} 秒</Text>;
+  return <Text style={[{ color: t.tx3, fontSize: 12, fontFamily: 'monospace' }, style]}>Elapsed {sec.toFixed(1)} sec</Text>;
 }
 
-// ── 「正在处理」打字动画：三个圆点依次淡入淡出，垂直居中（替代静态省略号）──────────
+// ── 「Processing」打字动画：三个圆点依次淡入淡出，垂直居中（替代静态省略号）──────────
 export function TypingDots({ color, size = 4, gap = 3.5 }: { color?: string; size?: number; gap?: number }) {
   const t = useTheme();
   const c = color ?? t.acTx;
@@ -176,7 +176,7 @@ export function DiffStat({ add, del, files }: { add?: number; del?: number; file
   if (!add && !del) return null;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
-      {files ? <Text style={{ color: t.tx3, fontSize: 12, fontWeight: '500' }}>{files} 个文件</Text> : null}
+      {files ? <Text style={{ color: t.tx3, fontSize: 12, fontWeight: '500' }}>{files} files</Text> : null}
       {add ? <Text style={{ color: t.add, fontSize: 12, fontWeight: '600', fontFamily: 'monospace' }}>+{add}</Text> : null}
       {del ? <Text style={{ color: t.del, fontSize: 12, fontWeight: '600', fontFamily: 'monospace' }}>−{del}</Text> : null}
     </View>
@@ -318,7 +318,7 @@ export function PickerSheet({ title, options, selected, onPick, onClose, onDismi
               <Pressable key={o.key} disabled={o.disabled} onPress={() => onPick(o.key)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 13, backgroundColor: on ? t.acGhost : 'transparent', borderRadius: 13, marginBottom: 2, opacity: o.disabled ? 0.4 : 1 }}>
                 {I ? <View style={{ width: 34, height: 34, borderRadius: 9, backgroundColor: t.bg4, alignItems: 'center', justifyContent: 'center' }}><I size={18} color={t.acTx} sw={1.8} /></View> : null}
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={{ fontSize: 14.5, fontWeight: '600', color: t.tx }}>{o.title}{o.disabled ? <Text style={{ color: t.tx3, fontWeight: '400', fontSize: 12 }}>　无额度</Text> : o.badge ? <Text style={{ color: t.acTx, fontWeight: '500', fontSize: 11.5 }}>　{o.badge}</Text> : null}</Text>
+                  <Text style={{ fontSize: 14.5, fontWeight: '600', color: t.tx }}>{o.title}{o.disabled ? <Text style={{ color: t.tx3, fontWeight: '400', fontSize: 12 }}>　No credits</Text> : o.badge ? <Text style={{ color: t.acTx, fontWeight: '500', fontSize: 11.5 }}>　{o.badge}</Text> : null}</Text>
                   {o.sub ? <Text numberOfLines={1} style={{ fontSize: 11.5, color: t.tx3, marginTop: 2, fontFamily: 'monospace' }}>{o.sub}</Text> : null}
                 </View>
                 {on ? <Icons.check size={18} color={t.ac} sw={2.4} /> : null}
@@ -346,7 +346,7 @@ export function Toast({ text, bottom = 108 }: { text: string; bottom?: number })
   );
 }
 
-// ── 加载 / 空态 ───────────────────────────────────────────────────────────────
+// ── Loading / Empty ───────────────────────────────────────────────────────────────
 export function Centered({ children, style }: { children?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
   return <View style={[{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm, backgroundColor: t.bg }, style]}>{children}</View>;
@@ -354,7 +354,7 @@ export function Centered({ children, style }: { children?: React.ReactNode; styl
 
 export function LoadingView({ label }: { label?: string }) {
   const t = useTheme();
-  // 末尾省略号统一换成居中的打字点动画（如「连接对话中」「加载任务详情」）。
+  // 末尾省略号统一换成居中的打字点动画（如「连接对话中」「Loading任务详情」）。
   const dots = !!label && label.endsWith('…');
   const trimmed = dots ? label!.slice(0, -1) : label;
   return (

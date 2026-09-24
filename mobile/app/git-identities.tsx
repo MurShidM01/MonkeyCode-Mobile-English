@@ -1,8 +1,8 @@
 /**
- * Git 账号管理 —— 对齐 Web「Git 平台身份凭证」（settings/identities.tsx）。
- * 列表展示已绑定身份，可删除；「添加 Git 账号」弹出方式选择：
+ * Git accounts管理 —— 对齐 Web「Git 平台身份凭证」（settings/identities.tsx）。
+ * 列表展示已绑定身份，可删除；「添加 Git accounts」弹出方式选择：
  *  - GitHub / GitLab / Gitee / Gitea：一键 OAuth 授权（/git-oauth）。
- *  - 其他平台：手动填 Access Token（/git-identity-form）。
+ *  - Other platform：手动填 Access Token（/git-identity-form）。
  * 身份是创建项目、让 AI 拉取/提交代码的前置条件。
  */
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -56,7 +56,7 @@ export default function GitIdentitiesScreen() {
       setIdentities(await listGitIdentities());
       setError('');
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败，请重试');
+      setError(e instanceof ApiError ? e.message : 'Failed to load. Please try again.');
     }
   }, []);
 
@@ -76,10 +76,10 @@ export default function GitIdentitiesScreen() {
 
   const onDelete = useCallback((identity: GitIdentity) => {
     const name = identity.remark?.trim() || identity.username || gitPlatformLabel(identity.platform);
-    Alert.alert('移除账号', `确定要移除「${name}」吗？使用该账号的项目将无法继续拉取/提交代码。`, [
-      { text: '取消', style: 'cancel' },
+    Alert.alert('Remove account', `Remove “${name}”? Projects using this account will no longer be able to pull or commit code.`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: '移除',
+        text: 'Remove',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -88,17 +88,17 @@ export default function GitIdentitiesScreen() {
             setError('');
           } catch (e) {
             // 后端 409：被项目占用
-            Alert.alert('无法移除', e instanceof ApiError ? e.message : '请稍后重试');
+            Alert.alert('Unable to remove', e instanceof ApiError ? e.message : 'Please try again later');
           }
         },
       },
     ]);
   }, []);
 
-  // 添加方式：OAuth 平台一键授权 + 手动填 Token
+  // 添加方式：OAuth 平台Authorize + 手动填 Token
   const addOptions: PickerOption[] = useMemo(() => [
-    ...OAUTH_PLATFORMS.map((p) => ({ key: p.key, title: p.label, sub: '一键授权', icon: providerIcon(p.key) })),
-    { key: MANUAL_KEY, title: '其他平台', sub: '手动填写 Access Token', icon: 'key' },
+    ...OAUTH_PLATFORMS.map((p) => ({ key: p.key, title: p.label, sub: 'Authorize', icon: providerIcon(p.key) })),
+    { key: MANUAL_KEY, title: 'Other platform', sub: 'Enter Access Token manually', icon: 'key' },
   ], []);
 
   const onPickAdd = useCallback((k: string) => {
@@ -110,19 +110,19 @@ export default function GitIdentitiesScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载账号中…" />
+        <LoadingView label="Loading accounts…" />
       ) : (
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + 64, paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 96 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.tx3} />}
         >
           {identities.length === 0 && error ? (
-            <EmptyView icon="alert" title="加载失败" subtitle={`${error}\n下拉可重试`} />
+            <EmptyView icon="alert" title="Failed to load" subtitle={`${error}\nPull down to retry`} />
           ) : identities.length === 0 ? (
-            <EmptyView icon="key" title="还没有 Git 账号" subtitle={'绑定 GitHub / GitLab / Gitee 等账号后\n即可创建项目，让 AI 拉取与提交代码'} />
+            <EmptyView icon="key" title="No Git accounts yet" subtitle={'Link GitHub, GitLab, Gitee, or another account\nthen create projects and let AI pull and commit code'} />
           ) : (
             <>
-              {error ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 12, marginBottom: 10 }}>刷新失败：{error}</Text> : null}
+              {error ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 12, marginBottom: 10 }}>Refresh failed:{error}</Text> : null}
               <Card style={{ paddingHorizontal: 15, paddingVertical: 3 }}>
                 {identities.map((it, i) => (
                   <IdentityRow key={it.id} identity={it} divider={i !== 0}
@@ -131,19 +131,19 @@ export default function GitIdentitiesScreen() {
                 ))}
               </Card>
               <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 14, paddingHorizontal: 4, lineHeight: 17 }}>
-                点按账号可修改用户名 / 邮箱 / 备注与 Token。一个平台可绑定多个账号，创建项目时选择其一。
+                Tap an account to edit its username, email, note, and token. You can link multiple accounts per platform and choose one when creating a project.
               </Text>
             </>
           )}
         </ScrollView>
       )}
 
-      <GlassNav title="Git 账号" onBack={() => router.back()} />
+      <GlassNav title="Git accounts" onBack={() => router.back()} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label="添加 Git 账号" icon="plus" onPress={() => setAdding(true)} />
+        <PrimaryButton block label="Add Git account" icon="plus" onPress={() => setAdding(true)} />
       </View>
 
-      <PickerSheet visible={adding} title="添加 Git 账号" options={addOptions} onPick={onPickAdd} onClose={() => setAdding(false)} />
+      <PickerSheet visible={adding} title="Add Git account" options={addOptions} onPick={onPickAdd} onClose={() => setAdding(false)} />
     </View>
   );
 }
