@@ -16,7 +16,7 @@ import { modelLabel } from '@/config';
 import { spacing, useTheme, type Theme } from '@/theme';
 
 function ModelRow({ model, onPress, onDelete, divider, t }: { model: Model; onPress: () => void; onDelete: () => void; divider: boolean; t: Theme }) {
-  const title = modelLabel(model) || '未命名模型';
+  const title = modelLabel(model) || 'Untitled model';
   // 有备注时标题是备注，副标题补充技术模型名；无备注时标题即模型名，不再重复一行
   const hasRemark = !!model.remark?.trim();
   return (
@@ -51,7 +51,7 @@ export default function MyModelsScreen() {
       setModels(all.filter((m) => m.id && m.owner?.type === 'private'));
       setError('');
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Failed to load，请重试');
+      setError(e instanceof ApiError ? e.message : 'Failed to load. Please try again.');
     }
   }, []);
 
@@ -70,7 +70,7 @@ export default function MyModelsScreen() {
   }, [load]);
 
   const onDelete = useCallback((m: Model) => {
-    const name = modelLabel(m) || '该模型';
+    const name = modelLabel(m) || 'This model';
     Alert.alert('Delete model', `Delete “${name}”? Tasks using this model will need another model.`, [
       { text: '取消', style: 'cancel' },
       {
@@ -82,7 +82,7 @@ export default function MyModelsScreen() {
             setModels((list) => list.filter((x) => x.id !== m.id));
             setError(''); // 残留的旧刷新错误不应在删空列表后冒出「Failed to load」空态
           } catch (e) {
-            Alert.alert('Delete failed', e instanceof ApiError ? e.message : '请稍后重试');
+            Alert.alert('Delete failed', e instanceof ApiError ? e.message : 'Please try again later');
           }
         },
       },
