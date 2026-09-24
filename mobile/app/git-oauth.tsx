@@ -54,7 +54,7 @@ export default function GitOAuthScreen() {
   const doneRef = useRef(false);
 
   // 拉取第三方 OAuth 授权地址（gitee/gitea/gitlab）。github 安装地址已同步初始化，跳过。
-  // 用内联 async 取数，setState 均在异步回调里；reloadKey 变化（重试）会重新拉取。
+  // 用内联 async 取数，setState 均在异步回调里；reloadKey 变化（Retry）会重新拉取。
   useEffect(() => {
     if (isGithub) return;
     let active = true;
@@ -65,7 +65,7 @@ export default function GitOAuthScreen() {
         if (!url) throw new Error('empty');
         setWebUrl(url);
       } catch {
-        if (active) setError(`获取 ${label} 授权地址失败，请重试`);
+        if (active) setError(`Failed to get ${label} authorization URL. Please try again.`);
       } finally {
         if (active) setPreparing(false);
       }
@@ -98,7 +98,7 @@ export default function GitOAuthScreen() {
     if (leftRef.current && !navState.loading) finalize();
   }, [backendHost, finalize]);
 
-  // 重试由用户点击触发：重置判定标记并重载。非 github 时置回 preparing，
+  // Retry由用户点击触发：重置判定标记并重载。非 github 时置回 preparing，
   // 由 reloadKey 变化驱动上面的 effect 重新拉取授权地址。
   const retry = useCallback(() => {
     doneRef.current = false;
@@ -116,7 +116,7 @@ export default function GitOAuthScreen() {
   const copyUrl = useCallback(() => {
     if (!shareUrl) return;
     void Clipboard.setStringAsync(shareUrl);
-    showToast('链接已复制');
+    showToast('Link copied');
   }, [shareUrl, showToast]);
 
   return (
@@ -140,14 +140,14 @@ export default function GitOAuthScreen() {
         {preparing || (!webUrl && !error) ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }]}>
             <ActivityIndicator color={t.ac} />
-            <Text style={{ color: t.tx2, fontSize: 13, marginTop: 12 }}>正在准备授权…</Text>
+            <Text style={{ color: t.tx2, fontSize: 13, marginTop: 12 }}>Preparing authorization…</Text>
           </View>
         ) : error ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, paddingHorizontal: 40, gap: 14 }]}>
             <Icons.alert size={28} color={t.red} sw={2} />
             <Text style={{ color: t.tx, fontSize: 14, textAlign: 'center' }}>{error}</Text>
             <Pressable onPress={retry} style={{ backgroundColor: t.ac, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 24 }}>
-              <Text style={{ color: t.acInk, fontWeight: '700' }}>重试</Text>
+              <Text style={{ color: t.acInk, fontWeight: '700' }}>Retry</Text>
             </Pressable>
           </View>
         ) : (
@@ -175,7 +175,7 @@ export default function GitOAuthScreen() {
             <View style={[{ backgroundColor: t.bg2, borderRadius: 18, paddingVertical: 22, paddingHorizontal: 26, alignItems: 'center', gap: 12, minWidth: 200 }, t.shCard]}>
               <ActivityIndicator color={t.ac} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Text style={{ color: t.tx2, fontSize: 14 }}>正在完成绑定</Text>
+                <Text style={{ color: t.tx2, fontSize: 14 }}>Finishing link</Text>
                 <TypingDots color={t.tx2} />
               </View>
             </View>
