@@ -9,6 +9,7 @@ import { LoadingView } from '@/components/ui';
 import { PreviewProvider } from '@/components/PreviewProvider';
 import { ThemeProvider, useTheme } from '@/theme';
 import { applyOta, useOtaAutoUpdate } from '@/updates/useOtaUpdate';
+import { I18nProvider, useI18n } from '@/i18n';
 
 function RootNav() {
   const { ready, authenticated } = useAuth();
@@ -29,7 +30,7 @@ function RootNav() {
     }
   }, [ready, authenticated, segments, router]);
 
-  if (!ready) return <LoadingView label="正在加载…" />;
+  if (!ready) return <LoadingView label="Loading…" />;
 
   return (
     <Stack
@@ -61,12 +62,13 @@ function RootNav() {
 }
 
 function Themed() {
+  const { t: i18n } = useI18n();
   const t = useTheme();
   // OTA：启动/回前台静默检查下载，下载好后提示一次重启生效（不打断当前操作）。
   useOtaAutoUpdate(useCallback(() => {
-    Alert.alert('发现新版本', '已下载更新，重启应用即可生效。', [
-      { text: '稍后' },
-      { text: '立即重启', onPress: () => { void applyOta(); } },
+    Alert.alert(i18n('updates.available'), i18n('updates.downloaded'), [
+      { text: i18n('common.later') },
+      { text: i18n('common.restartNow'), onPress: () => { void applyOta(); } },
     ]);
   }, []));
   // SDK 56：expo-router 不再基于 react-navigation，导航主题改由各屏 Stack 的 contentStyle 决定。
@@ -85,9 +87,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <KeyboardProvider>
         <ThemeProvider>
-          <AuthProvider>
-            <Themed />
-          </AuthProvider>
+          <I18nProvider>
+            <AuthProvider>
+              <Themed />
+            </AuthProvider>
+          </I18nProvider>
         </ThemeProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
