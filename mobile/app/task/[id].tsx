@@ -634,7 +634,7 @@ export default function TaskDetailScreen() {
             </Text>
           </View>
         ) : messages.length === 0 ? (
-          interactive ? <View style={{ flex: 1, paddingTop: headerH }}><LoadingView label="连接Conversation中…" /></View>
+          interactive ? <View style={{ flex: 1, paddingTop: headerH }}><LoadingView label="Connecting to conversation…" /></View>
             : <View style={{ flex: 1, paddingTop: headerH }}><EmptyView title="No conversation" subtitle="This task has no conversation history to display" /></View>
         ) : (
           <FlatList
