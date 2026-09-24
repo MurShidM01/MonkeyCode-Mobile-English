@@ -16,7 +16,7 @@ import { useSpeechToText } from '@/speech/useSpeechToText';
 import { DEFAULT_SKILL_IDS, modelLabel, pickDefaultImage, pickDefaultModel, TASK_DEFAULTS } from '@/config';
 import { spacing, useTheme, type Theme } from '@/theme';
 
-const SUGGESTIONS = ['修复一个线上 bug', '为这个仓库写单元测试', '重构这个模块', '解释这段代码做了什么'];
+const SUGGESTIONS = ['Fix an online bug', 'Write unit tests for this repository', 'Refactor this module', 'Explain what this code does'];
 
 // 「Select repository」列表里的「Enter repository URL manually」入口标识（区别于真实 project.id）
 const MANUAL_REPO_KEY = '__manual_repo__';
@@ -102,7 +102,7 @@ export default function NewTaskScreen() {
         setImageId(pickDefaultImage(imgs));
         setProjects(projRes.projects);
       } catch (e) {
-        setLoadError(e instanceof ApiError ? e.message : '加载配置失败');
+        setLoadError(e instanceof ApiError ? e.message : 'Failed to load configuration');
       } finally {
         setLoading(false);
       }
@@ -114,7 +114,7 @@ export default function NewTaskScreen() {
 
   const repoOptions: PickerOption[] = [
     { key: '', title: 'Quick start', sub: 'No repository', icon: 'sparkle' },
-    { key: ZIP_REPO_KEY, title: 'Upload Zip file', sub: zipFile?.name || '选择本地 .zip 压缩包', icon: 'filePlus' },
+    { key: ZIP_REPO_KEY, title: 'Upload Zip file', sub: zipFile?.name || 'Select a local .zip archive', icon: 'filePlus' },
     { key: MANUAL_REPO_KEY, title: 'Enter repository URL manually', sub: manualRepo || 'Enter a Git repository URL', icon: manualRepo ? providerIconForUrl(manualRepo) : 'git' },
     ...projects.map((p, i) => ({ key: p.id || `p${i}`, title: p.name || p.full_name || 'Project', sub: p.repo_url, icon: providerIconForUrl(p.repo_url) })),
   ];
@@ -163,7 +163,7 @@ export default function NewTaskScreen() {
   const submit = useCallback(async () => {
     setError('');
     if (!content.trim()) { setError('Describe what you want the AI to do'); return; }
-    if (!modelId) { setError('请Select model'); return; }
+    if (!modelId) { setError('Please select a model'); return; }
     if (repoKey === ZIP_REPO_KEY && !zipFile) { setError('Select a zip file'); return; }
     setSubmitting(true);
     try {
@@ -232,8 +232,8 @@ export default function NewTaskScreen() {
 
           {/* config */}
           <Card style={{ overflow: 'hidden', marginBottom: 14 }}>
-            <ConfigRow icon={repoKey === ZIP_REPO_KEY ? 'file' : 'folder'} label="代码仓库" value={repoValue} onPress={() => setPicking('repo')} t={t} />
-            <ConfigRow icon="cube" label="模型" value={selectedModel ? modelLabel(selectedModel) : 'Select model'} divider onPress={() => setPicking('model')} t={t} />
+            <ConfigRow icon={repoKey === ZIP_REPO_KEY ? 'file' : 'folder'} label="Repository" value={repoValue} onPress={() => setPicking('repo')} t={t} />
+            <ConfigRow icon="cube" label="Model" value={selectedModel ? modelLabel(selectedModel) : 'Select model'} divider onPress={() => setPicking('model')} t={t} />
           </Card>
 
           {/* describe */}
@@ -254,7 +254,7 @@ export default function NewTaskScreen() {
           </Card>
 
           {/* suggestions */}
-          <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 10 }}>试试这些</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.5, marginBottom: 10 }}>Try these</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {SUGGESTIONS.map((s) => (
               <Pressable key={s} onPress={() => setContent(s)} style={{ paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11, backgroundColor: t.bg2, borderWidth: 1, borderColor: t.line }}>
