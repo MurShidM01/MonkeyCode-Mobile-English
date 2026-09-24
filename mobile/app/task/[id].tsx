@@ -426,9 +426,9 @@ export default function TaskDetailScreen() {
   const onSaveImage = useCallback((url: string) => {
     if (!url) return;
     Alert.alert('Save image', 'Save this image?', [
-      { text: '取消', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: '保存',
+        text: 'Save',
         onPress: async () => {
           try { await saveImageToAlbum(url); flashToast('Saved to Photos'); }
           catch (e) { flashToast(e instanceof Error ? e.message : 'Save failed'); }
@@ -502,8 +502,8 @@ export default function TaskDetailScreen() {
     }
     else if (key === 'restart') doRestart(true);
     else if (key === 'reset') {
-      Alert.alert('Restart and clear context', '将清空当前Conversation上下文并Restart agent，确定Continue？', [
-        { text: '取消', style: 'cancel' },
+      Alert.alert('Restart and clear context', 'This will clear the current conversation context and restart the agent. Continue?', [
+        { text: 'Cancel', style: 'cancel' },
         { text: 'Clear and restart', style: 'destructive', onPress: () => doRestart(false) },
       ]);
     }
@@ -618,7 +618,7 @@ export default function TaskDetailScreen() {
   );
 
   if (loading) return <View style={{ flex: 1, backgroundColor: t.bg }}><LoadingView label="Loading task details…" /></View>;
-  if (error && !task) return <View style={{ flex: 1, backgroundColor: t.bg }}><EmptyView title="加载失败" subtitle={error} icon="alert" /></View>;
+  if (error && !task) return <View style={{ flex: 1, backgroundColor: t.bg }}><EmptyView title="Failed to load" subtitle={error} icon="alert" /></View>;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.bg }} behavior="padding">
@@ -672,7 +672,7 @@ export default function TaskDetailScreen() {
             // 在线预览入口：开发环境一旦监听端口就出现在输入框正上方，醒目、高频、一步直达。
             <Pressable onPress={openPreview} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.acGhost, borderWidth: 1, borderColor: t.acLine, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 10 }, pressed && { opacity: 0.7 }]}>
               <Icons.globe size={16} color={t.acTx} sw={2} />
-              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>在线预览</Text>
+              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>Live preview</Text>
               <Text numberOfLines={1} style={{ flex: 1, color: t.tx3, fontSize: 12, fontFamily: 'monospace' }}>
                 {previewPorts.length === 1 ? `Port ${previewPorts[0].port}` : `Port ${previewPorts.slice(0, 2).map((p) => p.port).join(' · ')}${previewPorts.length > 2 ? ` +${previewPorts.length - 2}` : ''}`}
               </Text>
