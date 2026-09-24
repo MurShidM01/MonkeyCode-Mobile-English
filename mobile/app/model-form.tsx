@@ -1,7 +1,7 @@
 /**
  * 添加 / 编辑自定义模型 —— 对齐 Web 用户控制台「绑定 AI 大模型」表单
  * （frontend/src/components/console/settings/add-model.tsx 与 edit-model.tsx）：
- * 字段、默认值与保存流程一致（保存前先 health-check，通过才落库）。
+ * 字段、默认值与Save流程一致（Save前先 health-check，通过才落库）。
  * 带 ?id= 参数时为编辑模式：回填该模型全部配置（自有模型接口会返回 base_url/api_key）。
  */
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -16,7 +16,7 @@ import { spacing, useTheme } from '@/theme';
 
 // 与 Web 端一致：用户自有模型固定走 BaiZhiCloud 渠道
 const PROVIDER = 'BaiZhiCloud';
-// 默认 API 地址按接口格式区分；用户改过地址后切换接口格式不再覆盖
+// 默认 API 地址按Interface type区分；用户改过地址后切换Interface type不再覆盖
 const DEFAULT_BASE_URLS: Record<ModelInterfaceType, string> = {
   openai_chat: 'https://ai-models.app.baizhi.cloud/api/openai',
   openai_responses: 'https://ai-models.app.baizhi.cloud/api/openai',
@@ -43,13 +43,13 @@ const STATIC_PROVIDER_MODELS: Record<string, ProviderModelItem[]> = {
 /** 实际请求端点提示（对齐 Web getModelUrlDescription）。 */
 function endpointHint(baseUrl: string, interfaceType: ModelInterfaceType): string {
   let url = baseUrl.trim();
-  if (!url) return '未设置模型 API 地址';
-  if (!/^https?:\/\//.test(url)) return '模型地址不合法';
+  if (!url) return 'Model API URL is not set';
+  if (!/^https?:\/\//.test(url)) return 'Invalid model URL';
   if (!url.endsWith('/')) url += '/';
   switch (interfaceType) {
-    case 'openai_responses': return `实际请求 ${url}responses`;
-    case 'openai_chat': return `实际请求 ${url}chat/completions`;
-    case 'anthropic': return `实际请求 ${url}v1/messages`;
+    case 'openai_responses': return `Request: ${url}responses`;
+    case 'openai_chat': return `Request: ${url}chat/completions`;
+    case 'anthropic': return `Request: ${url}v1/messages`;
   }
 }
 
@@ -94,9 +94,9 @@ export default function ModelFormScreen() {
   const [modelOptions, setModelOptions] = useState<ProviderModelItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [advanced, setAdvanced] = useState(false);
-  const [saving, setSaving] = useState<null | '检查模型中…' | '保存中…'>(null);
+  const [saving, setSaving] = useState<null | 'Check模型中…' | 'Save中…'>(null);
 
-  // 已保存的连接相关字段快照：这五个字段未变时跳过健康检查（检查会真实调用上游模型）
+  // 已Save的连接相关字段快照：这五个字段未变时跳过健康Check（Check会真实调用上游模型）
   const loadedConnRef = useRef<ConnFields | null>(null);
 
   // 编辑模式：从列表接口取回该模型并回填（对齐 Web edit-model 的预填逻辑）
@@ -110,7 +110,7 @@ export default function ModelFormScreen() {
         if (!m) {
           // 直接返回列表，Alert 仅作通知 —— Android 上弹窗可点外部关闭，
           // 若停留在本页等按钮回调会卡死在加载态
-          Alert.alert('模型不存在', '该模型可能已被删除。');
+          Alert.alert('Model not found', 'This model may have been deleted.');
           leave();
           return;
         }
@@ -143,7 +143,7 @@ export default function ModelFormScreen() {
       })
       .catch((e) => {
         if (!active) return;
-        Alert.alert('加载失败', e instanceof ApiError ? e.message : '请稍后重试');
+        Alert.alert('Failed to load', e instanceof ApiError ? e.message : '请稍后重试');
         leave();
       });
     return () => { active = false; };
@@ -158,7 +158,7 @@ export default function ModelFormScreen() {
     <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600', marginTop: top, marginBottom: 8 }}>{text}</Text>
   );
 
-  // 切换接口格式：地址为空或仍是「当前格式」的默认值（用户未自定义）时，跟随切到新格式的默认地址。
+  // 切换Interface type：地址为空或仍是「当前格式」的默认值（用户未自定义）时，跟随切到新格式的默认地址。
   // 只和当前格式的默认值比较 —— 若和所有默认值比较，会把「anthropic 格式 + openai 地址」这类
   // 存量组合在点击任意标签（包括已选中的）时静默改写掉
   const pickInterface = useCallback((k: ModelInterfaceType) => {
@@ -170,7 +170,7 @@ export default function ModelFormScreen() {
   }, [interfaceType]);
 
   const fetchModels = useCallback(async () => {
-    if (!apiKey.trim()) { Alert.alert('提示', '请先输入 API Token'); return; }
+    if (!apiKey.trim()) { Alert.alert('提示', 'Enter an API Token first'); return; }
     const url = baseUrl.trim() || DEFAULT_BASE_URLS[interfaceType];
     const preset = STATIC_PROVIDER_MODELS[url];
     if (preset) { setModelOptions(preset); setPickerOpen(true); return; }
@@ -178,13 +178,13 @@ export default function ModelFormScreen() {
     try {
       const models = await listProviderModels({ api_key: apiKey.trim(), base_url: url, provider });
       if (models.length === 0) {
-        Alert.alert('未获取到可用模型', '可直接在「模型名称」中手动填写（与服务商 API 一致）。');
+        Alert.alert('No available models found', 'You can enter the model name manually (as required by the provider API).');
       } else {
         setModelOptions(models);
         setPickerOpen(true);
       }
     } catch (e) {
-      Alert.alert('获取模型列表失败', `${e instanceof ApiError ? e.message : '网络错误'}\n可直接手动填写模型名称。`);
+      Alert.alert('Failed to fetch model list', `${e instanceof ApiError ? e.message : 'Network error'}\nYou can enter the model name manually.`);
     } finally {
       setLoadingModels(false);
     }
@@ -197,13 +197,13 @@ export default function ModelFormScreen() {
 
   const onSave = useCallback(async () => {
     if (saving) return;
-    if (!baseUrl.trim()) { Alert.alert('提示', '请输入模型 API 地址'); return; }
-    if (!apiKey.trim()) { Alert.alert('提示', '请输入 API Token'); return; }
-    if (!model.trim()) { Alert.alert('提示', '请填写或选择模型名称'); return; }
+    if (!baseUrl.trim()) { Alert.alert('提示', 'Enter the model API URL'); return; }
+    if (!apiKey.trim()) { Alert.alert('提示', 'Enter API Token'); return; }
+    if (!model.trim()) { Alert.alert('提示', 'Enter or select a model name'); return; }
     const ctx = parsePositiveInt(contextLimit);
-    if (ctx === null) { setAdvanced(true); Alert.alert('提示', '上下文长度必须为大于 0 的整数'); return; }
+    if (ctx === null) { setAdvanced(true); Alert.alert('提示', 'Context length must be a positive integer'); return; }
     const out = parsePositiveInt(outputLimit);
-    if (out === null) { setAdvanced(true); Alert.alert('提示', '输出长度必须为大于 0 的整数'); return; }
+    if (out === null) { setAdvanced(true); Alert.alert('提示', 'Output length must be a positive integer'); return; }
 
     const conn: ConnFields = {
       provider,
@@ -212,26 +212,26 @@ export default function ModelFormScreen() {
       api_key: apiKey.trim(),
       interface_type: interfaceType,
     };
-    // 编辑时若连接字段都没改（只改了备注/长度/开关），跳过健康检查：
-    // 检查会真实请求上游模型，纯属性修改不该被上游临时故障拦住
+    // 编辑时若连接字段都没改（只改了备注/长度/开关），跳过健康Check：
+    // Check会真实请求上游模型，纯属性修改不该被上游临时故障拦住
     const loaded = loadedConnRef.current;
     const connChanged = !editing || !loaded ||
       (Object.keys(conn) as (keyof ConnFields)[]).some((k) => conn[k] !== loaded[k]);
 
-    let phase: '检查' | '保存' = '保存';
+    let phase: 'Check' | 'Save' = 'Save';
     try {
       if (connChanged) {
-        // 与 Web 端一致：先按配置做健康检查，确认可用再保存
-        phase = '检查';
-        setSaving('检查模型中…');
+        // 与 Web 端一致：先按配置做健康Check，确认可用再Save
+        phase = 'Check';
+        setSaving('Check模型中…');
         const check = await checkModelConfig(conn);
         if (!check.success) {
-          Alert.alert('模型配置检查失败', check.error || '请确认 API 地址、Token 与模型名称无误。');
+          Alert.alert('模型配置Check失败', check.error || 'Check the API URL, token, and model name.');
           return;
         }
-        phase = '保存';
+        phase = 'Save';
       }
-      setSaving('保存中…');
+      setSaving('Save中…');
       const req = {
         ...conn,
         remark: remark.trim(),
@@ -244,8 +244,8 @@ export default function ModelFormScreen() {
       else await createModel(req);
       leave();
     } catch (e) {
-      // 区分阶段：检查阶段的网络异常不该被说成「修改/绑定失败」（此时什么都没改）
-      const title = phase === '检查' ? '模型检查失败' : editing ? '修改模型失败' : '绑定模型失败';
+      // 区分阶段：Check阶段的网络异常不该被说成「修改/绑定失败」（此时什么都没改）
+      const title = phase === 'Check' ? '模型Check失败' : editing ? 'Failed to update model' : 'Failed to add model';
       Alert.alert(title, e instanceof ApiError ? e.message : '请稍后重试');
     } finally {
       setSaving(null);
@@ -265,8 +265,8 @@ export default function ModelFormScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: t.bg }}>
-        <LoadingView label="加载模型配置…" />
-        <GlassNav title="编辑模型" onBack={leave} />
+        <LoadingView label="Loading model configuration…" />
+        <GlassNav title="Edit model" onBack={leave} />
       </View>
     );
   }
@@ -278,7 +278,7 @@ export default function ModelFormScreen() {
           contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 110 }}
           keyboardShouldPersistTaps="handled"
         >
-          {label('接口格式', 0)}
+          {label('Interface type', 0)}
           <View style={{ flexDirection: 'row', backgroundColor: t.bg3, borderRadius: 12, padding: 3 }}>
             {INTERFACE_OPTIONS.map((o) => {
               const on = interfaceType === o.k;
@@ -290,14 +290,14 @@ export default function ModelFormScreen() {
             })}
           </View>
 
-          {label('模型 API 地址')}
+          {label('Model API URL')}
           <TextInput value={baseUrl} onChangeText={setBaseUrl} placeholder={DEFAULT_BASE_URLS[interfaceType]} placeholderTextColor={t.tx3}
             autoCapitalize="none" autoCorrect={false} keyboardType="url" editable={!saving} style={fieldStyle('baseUrl')} {...focusProps('baseUrl')} />
           <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 7, fontFamily: 'monospace' }}>{endpointHint(baseUrl, interfaceType)}</Text>
 
           {label('API Token')}
           <View style={[fieldStyle('apiKey'), { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingRight: 6 }]}>
-            <TextInput value={apiKey} onChangeText={setApiKey} placeholder="请输入 API Token" placeholderTextColor={t.tx3}
+            <TextInput value={apiKey} onChangeText={setApiKey} placeholder="Enter API Token" placeholderTextColor={t.tx3}
               secureTextEntry={!showKey} autoCapitalize="none" autoCorrect={false} editable={!saving}
               style={{ flex: 1, color: t.tx, fontSize: 15, paddingVertical: Platform.OS === 'ios' ? 13 : 9 }} {...focusProps('apiKey')} />
             <Pressable onPress={() => setShowKey((v) => !v)} hitSlop={8} style={{ padding: 8 }}>
@@ -305,26 +305,26 @@ export default function ModelFormScreen() {
             </Pressable>
           </View>
 
-          {label('模型名称')}
+          {label('Model name')}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {/* 与右侧 44 高的按钮同行：固定高度并垂直居中，否则 Android 上 padding 撑出的 ~38 高会让文字偏上 */}
-            <TextInput value={model} onChangeText={setModel} placeholder="与服务商 API 一致，如 deepseek-chat" placeholderTextColor={t.tx3}
+            <TextInput value={model} onChangeText={setModel} placeholder="Provider API model name, e.g. deepseek-chat" placeholderTextColor={t.tx3}
               autoCapitalize="none" autoCorrect={false} editable={!saving}
               style={[fieldStyle('model'), { flex: 1, height: 44, paddingVertical: 0, textAlignVertical: 'center' }]} {...focusProps('model')} />
             <Pressable onPress={fetchModels} disabled={loadingModels || !!saving} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 44, paddingHorizontal: 13, borderRadius: 14, backgroundColor: t.acGhost }, (pressed || loadingModels) && { opacity: 0.6 }]}>
               {loadingModels ? <ActivityIndicator size="small" color={t.acTx} /> : <Icons.search size={14} color={t.acTx} sw={2} />}
-              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>拉取列表</Text>
+              <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>Fetch list</Text>
             </Pressable>
           </View>
-          <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 7 }}>输入 API Token 后可拉取可用模型列表选择；拉取失败时按服务商文档手动填写。</Text>
+          <Text style={{ color: t.tx3, fontSize: 11.5, marginTop: 7 }}>Enter an API token to fetch available models. If that fails, enter the model name manually.</Text>
 
-          {label('备注（选填）')}
-          <TextInput value={remark} onChangeText={setRemark} placeholder="模型展示名，如「我的 DeepSeek」" placeholderTextColor={t.tx3}
+          {label('Note (optional)')}
+          <TextInput value={remark} onChangeText={setRemark} placeholder="Display name, e.g. “My DeepSeek”" placeholderTextColor={t.tx3}
             editable={!saving} style={fieldStyle('remark')} {...focusProps('remark')} />
 
-          {/* 高级配置：上下文/输出长度 + 思考/图片开关，默认折叠（编辑时有非默认值会自动展开） */}
+          {/* Advanced configuration：上下文/Output length + 思考/图片开关，默认折叠（编辑时有非默认值会自动展开） */}
           <Pressable onPress={() => setAdvanced((v) => !v)} hitSlop={8} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 20, alignSelf: 'flex-start' }, pressed && { opacity: 0.6 }]}>
-            <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>高级配置</Text>
+            <Text style={{ fontSize: 13, color: t.tx2, fontWeight: '600' }}>Advanced configuration</Text>
             <Icons.chevron size={14} color={t.tx3} sw={2} style={{ transform: [{ rotate: advanced ? '90deg' : '0deg' }] }} />
           </Pressable>
 
@@ -332,34 +332,34 @@ export default function ModelFormScreen() {
             <>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  {label('上下文长度', 12)}
+                  {label('Context length', 12)}
                   <TextInput value={contextLimit} onChangeText={setContextLimit} keyboardType="number-pad" editable={!saving}
                     placeholder={DEFAULT_CONTEXT_LIMIT} placeholderTextColor={t.tx3} style={fieldStyle('ctx')} {...focusProps('ctx')} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  {label('输出长度', 12)}
+                  {label('Output length', 12)}
                   <TextInput value={outputLimit} onChangeText={setOutputLimit} keyboardType="number-pad" editable={!saving}
                     placeholder={DEFAULT_OUTPUT_LIMIT} placeholderTextColor={t.tx3} style={fieldStyle('out')} {...focusProps('out')} />
                 </View>
               </View>
 
               <View style={{ marginTop: 8 }}>
-                {switchRow('推理 / 思考', '模型支持思考模式时开启', thinkingEnabled, setThinkingEnabled)}
-                {switchRow('图片识别', '开启后该模型可接收图片输入', supportImage, setSupportImage)}
+                {switchRow('Reasoning / Thinking', 'Enable when the model supports reasoning', thinkingEnabled, setThinkingEnabled)}
+                {switchRow('Image input', 'Allow this model to receive image input', supportImage, setSupportImage)}
               </View>
             </>
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <GlassNav title={editing ? '编辑模型' : '添加模型'} onBack={leave} />
+      <GlassNav title={editing ? 'Edit model' : 'Add model'} onBack={leave} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label={saving ?? '检查并保存'} icon={saving ? undefined : 'check'} disabled={!!saving} onPress={onSave} />
+        <PrimaryButton block label={saving ?? 'Check并Save'} icon={saving ? undefined : 'check'} disabled={!!saving} onPress={onSave} />
       </View>
 
       <PickerSheet
         visible={pickerOpen}
-        title="选择模型"
+        title="Select model"
         options={pickerOptions}
         selected={model}
         onPick={(k) => { setModel(k); setPickerOpen(false); }}
