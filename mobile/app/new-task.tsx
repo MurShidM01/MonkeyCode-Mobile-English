@@ -271,7 +271,7 @@ export default function NewTaskScreen() {
       {/* footer action */}
       {!loading ? (
         <View style={{ paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 14, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg }}>
-          <PrimaryButton block icon={submitting ? undefined : 'send'} label={submitting ? (repoKey === ZIP_REPO_KEY ? '正在上传…' : 'Creating…') : 'Start task'} disabled={submitting || !content.trim()} onPress={submit} />
+          <PrimaryButton block icon={submitting ? undefined : 'send'} label={submitting ? (repoKey === ZIP_REPO_KEY ? 'Uploading…' : 'Creating…') : 'Start task'} disabled={submitting || !content.trim()} onPress={submit} />
         </View>
       ) : null}
 
