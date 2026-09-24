@@ -72,9 +72,9 @@ export default function MyModelsScreen() {
   const onDelete = useCallback((m: Model) => {
     const name = modelLabel(m) || 'This model';
     Alert.alert('Delete model', `Delete “${name}”? Tasks using this model will need another model.`, [
-      { text: '取消', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: '删除',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
