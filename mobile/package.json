@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "check:english": "node scripts/check-mobile-english-ui.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
