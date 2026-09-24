@@ -94,7 +94,7 @@ export default function ModelFormScreen() {
   const [modelOptions, setModelOptions] = useState<ProviderModelItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [advanced, setAdvanced] = useState(false);
-  const [saving, setSaving] = useState<null | 'Check模型中…' | 'Save中…'>(null);
+  const [saving, setSaving] = useState<null | 'Checking model…' | 'Saving…'>(null);
 
   // 已Save的连接相关字段快照：这五个字段未变时跳过健康Check（Check会真实调用上游模型）
   const loadedConnRef = useRef<ConnFields | null>(null);
@@ -143,7 +143,7 @@ export default function ModelFormScreen() {
       })
       .catch((e) => {
         if (!active) return;
-        Alert.alert('Failed to load', e instanceof ApiError ? e.message : '请稍后重试');
+        Alert.alert('Failed to load', e instanceof ApiError ? e.message : 'Please try again later');
         leave();
       });
     return () => { active = false; };
@@ -170,7 +170,7 @@ export default function ModelFormScreen() {
   }, [interfaceType]);
 
   const fetchModels = useCallback(async () => {
-    if (!apiKey.trim()) { Alert.alert('提示', 'Enter an API Token first'); return; }
+    if (!apiKey.trim()) { Alert.alert('Notice', 'Enter an API Token first'); return; }
     const url = baseUrl.trim() || DEFAULT_BASE_URLS[interfaceType];
     const preset = STATIC_PROVIDER_MODELS[url];
     if (preset) { setModelOptions(preset); setPickerOpen(true); return; }
@@ -197,13 +197,13 @@ export default function ModelFormScreen() {
 
   const onSave = useCallback(async () => {
     if (saving) return;
-    if (!baseUrl.trim()) { Alert.alert('提示', 'Enter the model API URL'); return; }
-    if (!apiKey.trim()) { Alert.alert('提示', 'Enter API Token'); return; }
-    if (!model.trim()) { Alert.alert('提示', 'Enter or select a model name'); return; }
+    if (!baseUrl.trim()) { Alert.alert('Notice', 'Enter the model API URL'); return; }
+    if (!apiKey.trim()) { Alert.alert('Notice', 'Enter API Token'); return; }
+    if (!model.trim()) { Alert.alert('Notice', 'Enter or select a model name'); return; }
     const ctx = parsePositiveInt(contextLimit);
-    if (ctx === null) { setAdvanced(true); Alert.alert('提示', 'Context length must be a positive integer'); return; }
+    if (ctx === null) { setAdvanced(true); Alert.alert('Notice', 'Context length must be a positive integer'); return; }
     const out = parsePositiveInt(outputLimit);
-    if (out === null) { setAdvanced(true); Alert.alert('提示', 'Output length must be a positive integer'); return; }
+    if (out === null) { setAdvanced(true); Alert.alert('Notice', 'Output length must be a positive integer'); return; }
 
     const conn: ConnFields = {
       provider,
@@ -223,15 +223,15 @@ export default function ModelFormScreen() {
       if (connChanged) {
         // 与 Web 端一致：先按配置做健康Check，确认可用再Save
         phase = 'Check';
-        setSaving('Check模型中…');
+        setSaving('Checking model…');
         const check = await checkModelConfig(conn);
         if (!check.success) {
-          Alert.alert('模型配置Check失败', check.error || 'Check the API URL, token, and model name.');
+          Alert.alert('Model configuration check failed', check.error || 'Check the API URL, token, and model name.');
           return;
         }
         phase = 'Save';
       }
-      setSaving('Save中…');
+      setSaving('Saving…');
       const req = {
         ...conn,
         remark: remark.trim(),
@@ -245,8 +245,8 @@ export default function ModelFormScreen() {
       leave();
     } catch (e) {
       // 区分阶段：Check阶段的网络异常不该被说成「修改/绑定失败」（此时什么都没改）
-      const title = phase === 'Check' ? '模型Check失败' : editing ? 'Failed to update model' : 'Failed to add model';
-      Alert.alert(title, e instanceof ApiError ? e.message : '请稍后重试');
+      const title = phase === 'Check' ? 'Model check failed' : editing ? 'Failed to update model' : 'Failed to add model';
+      Alert.alert(title, e instanceof ApiError ? e.message : 'Please try again later');
     } finally {
       setSaving(null);
     }
@@ -354,7 +354,7 @@ export default function ModelFormScreen() {
 
       <GlassNav title={editing ? 'Edit model' : 'Add model'} onBack={leave} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label={saving ?? 'Check并Save'} icon={saving ? undefined : 'check'} disabled={!!saving} onPress={onSave} />
+        <PrimaryButton block label={saving ?? 'Check and save'} icon={saving ? undefined : 'check'} disabled={!!saving} onPress={onSave} />
       </View>
 
       <PickerSheet
