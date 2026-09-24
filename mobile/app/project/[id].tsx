@@ -69,7 +69,7 @@ export default function ProjectDetailScreen() {
       setHasMore(list.length >= PAGE_SIZE);
       setPage(pageNum);
     } catch (e) {
-      if (!append) setError(e instanceof ApiError ? e.message : '加载失败');
+      if (!append) setError(e instanceof ApiError ? e.message : 'Failed to load');
     } finally {
       loadingRef.current = false;
       setLoadingMore(false);
@@ -83,7 +83,7 @@ export default function ProjectDetailScreen() {
       const d = await getProjectDetail(id);
       setProject(d);
       setIssueCount(d?.issues?.length ?? 0);
-    } catch (e) { setError(e instanceof ApiError ? e.message : '加载失败'); }
+    } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed to load'); }
     // 该Project下的Task计数：总数 + 进行中（走 project_id 过滤的Task列表 page_info.total）
     Promise.allSettled([
       getTaskCount({ project_id: id }),
@@ -137,9 +137,9 @@ export default function ProjectDetailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载Project…" />
+        <LoadingView label="Loading project…" />
       ) : error && !project && tasks.length === 0 ? (
-        <EmptyView title="加载失败" subtitle={error} icon="alert" />
+        <EmptyView title="Failed to load" subtitle={error} icon="alert" />
       ) : (
         <FlatList
           data={tasks}
@@ -151,7 +151,7 @@ export default function ProjectDetailScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.ac} progressViewOffset={insets.top + 52} />}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.4}
-          ListEmptyComponent={<View style={{ paddingTop: 20 }}><EmptyView title="还没有Task" subtitle="点下方按钮在此仓库发起一个" /></View>}
+          ListEmptyComponent={<View style={{ paddingTop: 20 }}><EmptyView title="No tasks yet" subtitle="Tap the button below to start a task in this repository" /></View>}
           ListFooterComponent={loadingMore ? <View style={{ paddingVertical: 18, alignItems: 'center' }}><ActivityIndicator color={t.ac} /></View> : null}
         />
       )}
@@ -160,7 +160,7 @@ export default function ProjectDetailScreen() {
 
       {project ? (
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-          <PrimaryButton block icon="plus" label="在此仓库发起Task"
+          <PrimaryButton block icon="plus" label="Start task in this repository"
             onPress={() => router.push({ pathname: '/new-task', params: { repo: project.repo_url || '', repoName: project.name || '', projectId: project.id || '' } })} />
         </View>
       ) : null}
