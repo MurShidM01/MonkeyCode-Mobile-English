@@ -1,9 +1,24 @@
-import React, { createContext, useContext } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { en } from './en';
+
 export type Language = 'en';
 export const DEFAULT_LANGUAGE: Language = 'en';
-type I18nValue = { language: Language; t: (path: string) => string };
-const I18nContext = createContext<I18nValue>({ language: DEFAULT_LANGUAGE, t: (path) => path });
+export const LANGUAGE_OPTIONS = [{ key: 'en' as const, label: 'English' }];
+
+type I18nValue = {
+  language: Language;
+  setLanguage: (language: Language) => Promise<void>;
+  t: (path: string) => string;
+};
+
+const LANGUAGE_KEY = 'mc.language';
+const I18nContext = createContext<I18nValue>({
+  language: DEFAULT_LANGUAGE,
+  setLanguage: async () => undefined,
+  t: (path) => path,
+});
+
 function resolvePath(path: string): string {
   let value: unknown = en;
   for (const part of path.split('.')) {
@@ -12,7 +27,25 @@ function resolvePath(path: string): string {
   }
   return typeof value === 'string' ? value : path;
 }
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  return <I18nContext.Provider value={{ language: DEFAULT_LANGUAGE, t: resolvePath }}>{children}</I18nContext.Provider>;
+  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
+
+  useEffect(() => {
+    let active = true;
+    AsyncStorage.getItem(LANGUAGE_KEY)
+      .then((value) => { if (active && value === 'en') setLanguageState('en'); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
+  const setLanguage = async (next: Language) => {
+    setLanguageState(next);
+    await AsyncStorage.setItem(LANGUAGE_KEY, next);
+  };
+
+  const value = useMemo(() => ({ language, setLanguage, t: resolvePath }), [language]);
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
+
 export function useI18n() { return useContext(I18nContext); }
