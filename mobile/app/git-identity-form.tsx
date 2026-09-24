@@ -72,7 +72,7 @@ export default function GitIdentityFormScreen() {
       })
       .catch((e) => {
         if (!active) return;
-        Alert.alert('加载失败', e instanceof ApiError ? e.message : '请稍后重试');
+        Alert.alert('Failed to load', e instanceof ApiError ? e.message : '请稍后重试');
         leave();
       });
     return () => { active = false; };
@@ -141,7 +141,7 @@ export default function GitIdentityFormScreen() {
       }
       leave();
     } catch (e) {
-      Alert.alert(editing ? 'Save failed' : 'Link failed', e instanceof ApiError ? e.message : '请检查信息后重试');
+      Alert.alert(editing ? 'Save failed' : 'Link failed', e instanceof ApiError ? e.message : 'Please check the information and try again');
     } finally {
       setSaving(false);
     }
@@ -209,11 +209,11 @@ export default function GitIdentityFormScreen() {
             </>
           ) : null}
 
-          {label('用户名')}
+          {label('Username')}
           <TextInput value={username} onChangeText={setUsername} placeholder="Git platform username" placeholderTextColor={t.tx3}
             autoCapitalize="none" autoCorrect={false} editable={!saving} style={fieldStyle('username')} {...focusProps('username')} />
 
-          {label('邮箱')}
+          {label('Email')}
           <TextInput value={email} onChangeText={setEmail} placeholder="Email used for commits" placeholderTextColor={t.tx3}
             autoCapitalize="none" autoCorrect={false} keyboardType="email-address" editable={!saving}
             style={fieldStyle('email')} {...focusProps('email')} />
