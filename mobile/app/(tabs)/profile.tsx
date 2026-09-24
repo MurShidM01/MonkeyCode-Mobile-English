@@ -101,7 +101,7 @@ function About({ t }: { t: Theme }) {
     const app = await checkAppUpdate();
     if (app) {
       setOtaBusy(null);
-      Alert.alert('Update available', `新版本 v${app.version} 可用，需前往下载安装新版本。`, [
+      Alert.alert('Update available', `New version v${app.version} is available. Open the update page to install it.`, [
         { text: 'Later', style: 'cancel' },
         { text: 'Update', onPress: () => { if (app.url) open(app.url); } },
       ]);
@@ -110,9 +110,9 @@ function About({ t }: { t: Theme }) {
     // 2) 原生Up to date → 看 OTA（对User就是「更新」，不提热更新）
     const r = await checkOta();
     setOtaBusy(null);
-    if (r.status === 'disabled') { Alert.alert('Check for updates', '开发模式下不可用，正式包才会Check for updates。'); return; }
+    if (r.status === 'disabled') { Alert.alert('Check for updates', 'Unavailable in development mode. Updates are checked in production builds.'); return; }
     // error（OTA 服务未上线/网络异常，拿不到有效数据）视为Up to date，不向User报错
-    if (r.status === 'error' || r.status === 'none') { Alert.alert('Up to date', `当前Up to date版本 ${verLine}。`); return; }
+    if (r.status === 'error' || r.status === 'none') { Alert.alert('Up to date', `You are already on the latest version ${verLine}.`); return; }
     Alert.alert('Update available', 'A new version is available. Update now?\n(The app will restart after updating.)', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Update now', onPress: applyOtaNow },
@@ -272,7 +272,7 @@ function QuotaBar({ name, total, remaining, t }: { name: string; total: number; 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <Text style={{ fontSize: 14, fontWeight: '600', color: t.tx }}>{name}</Text>
         <Text style={{ fontSize: 12, color: empty ? t.tx3 : t.tx2, fontFamily: 'monospace' }}>
-          {empty ? '无额度' : `${fmtTokens(remaining)} / ${fmtTokens(total)} remaining`}
+          {empty ? 'No credits' : `${fmtTokens(remaining)} / ${fmtTokens(total)} remaining`}
         </Text>
       </View>
       <View style={{ height: 6, borderRadius: 99, backgroundColor: t.track, overflow: 'hidden' }}>
@@ -376,7 +376,7 @@ export default function ProfileScreen() {
     if (bindingEmail) return;
     const nextEmail = bindEmail.trim();
     if (!EMAIL_RE.test(nextEmail)) {
-      Alert.alert('Invalid email', '请输入有效的Email address。');
+      Alert.alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
 
@@ -387,7 +387,7 @@ export default function ProfileScreen() {
       setBindEmail('');
       Alert.alert('Verification email sent', `Check ${nextEmail} for the verification email. Your email will appear here after verification.`);
     } catch (e) {
-      Alert.alert('Link email失败', e instanceof Error && e.message ? e.message : '请Later重试');
+      Alert.alert('Failed to link email', e instanceof Error && e.message ? e.message : 'Please try again later');
     } finally {
       setBindingEmail(false);
     }
@@ -487,7 +487,7 @@ export default function ProfileScreen() {
               <View style={{ marginTop: 7, gap: 5 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, minWidth: 0 }}>
                   <Icons.mail size={13} color={t.tx3} sw={1.8} />
-                  <Text numberOfLines={1} style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>{email || '未Link email'}</Text>
+                  <Text numberOfLines={1} style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: t.tx3, fontWeight: '500' }}>{email || 'No email linked'}</Text>
                   {!email ? (
                     <Pressable onPress={() => setBindEmailOpen(true)} hitSlop={8} style={({ pressed }) => [{ paddingHorizontal: 4, paddingVertical: 2 }, pressed && { opacity: 0.55 }]}>
                       <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>Link</Text>
@@ -495,7 +495,7 @@ export default function ProfileScreen() {
                   ) : null}
                 </View>
                 {user?.id ? (
-                  <Pressable onPress={() => copy(user.id!, 'User ID 已复制')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start' }, pressed && { opacity: 0.55 }]}>
+                  <Pressable onPress={() => copy(user.id!, 'User ID copied')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start' }, pressed && { opacity: 0.55 }]}>
                     <Icons.copy size={13} color={t.tx3} sw={1.8} />
                     <Text style={{ fontSize: 12.5, color: t.tx3, fontFamily: 'monospace' }}>{maskUserId(user.id)}</Text>
                   </Pressable>
