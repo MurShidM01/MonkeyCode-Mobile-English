@@ -84,7 +84,7 @@ export default function ProjectDetailScreen() {
       setProject(d);
       setIssueCount(d?.issues?.length ?? 0);
     } catch (e) { setError(e instanceof ApiError ? e.message : '加载失败'); }
-    // 该项目下的任务计数：总数 + 进行中（走 project_id 过滤的任务列表 page_info.total）
+    // 该Project下的Task计数：总数 + 进行中（走 project_id 过滤的Task列表 page_info.total）
     Promise.allSettled([
       getTaskCount({ project_id: id }),
       getTaskCount({ project_id: id, status: 'pending,processing' }),
@@ -110,7 +110,7 @@ export default function ProjectDetailScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         <ProjIcon size={56} lit t={t} platform={project.platform} />
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text numberOfLines={1} style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.4, color: t.tx }}>{project.name || repo || '项目'}</Text>
+          <Text numberOfLines={1} style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.4, color: t.tx }}>{project.name || repo || 'Project'}</Text>
           {repo ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 5 }}>
               <Icons.git size={13} color={t.tx3} sw={1.7} />
@@ -121,23 +121,23 @@ export default function ProjectDetailScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-        <Stat label="任务" t={t} value={
+        <Stat label="Task" t={t} value={
           <Text>
             <Text style={{ color: t.acTx }}>{runningCount}</Text>
             <Text style={{ color: t.tx3, fontWeight: '700' }}> / {totalCount}</Text>
           </Text>
         } />
-        <Stat label="需求" value={issueCount} accent={issueCount > 0} t={t} />
+        <Stat label="Request" value={issueCount} accent={issueCount > 0} t={t} />
       </View>
 
-      <Text style={{ paddingTop: 18, paddingBottom: 8, fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.6 }}>任务</Text>
+      <Text style={{ paddingTop: 18, paddingBottom: 8, fontSize: 12, fontWeight: '700', color: t.tx3, letterSpacing: 0.6 }}>Task</Text>
     </View>
   ) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载项目…" />
+        <LoadingView label="加载Project…" />
       ) : error && !project && tasks.length === 0 ? (
         <EmptyView title="加载失败" subtitle={error} icon="alert" />
       ) : (
@@ -151,16 +151,16 @@ export default function ProjectDetailScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.ac} progressViewOffset={insets.top + 52} />}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.4}
-          ListEmptyComponent={<View style={{ paddingTop: 20 }}><EmptyView title="还没有任务" subtitle="点下方按钮在此仓库发起一个" /></View>}
+          ListEmptyComponent={<View style={{ paddingTop: 20 }}><EmptyView title="还没有Task" subtitle="点下方按钮在此仓库发起一个" /></View>}
           ListFooterComponent={loadingMore ? <View style={{ paddingVertical: 18, alignItems: 'center' }}><ActivityIndicator color={t.ac} /></View> : null}
         />
       )}
 
-      <GlassNav title={project?.name || '项目'} onBack={() => router.back()} />
+      <GlassNav title={project?.name || 'Project'} onBack={() => router.back()} />
 
       {project ? (
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-          <PrimaryButton block icon="plus" label="在此仓库发起任务"
+          <PrimaryButton block icon="plus" label="在此仓库发起Task"
             onPress={() => router.push({ pathname: '/new-task', params: { repo: project.repo_url || '', repoName: project.name || '', projectId: project.id || '' } })} />
         </View>
       ) : null}
