@@ -259,7 +259,7 @@ export function RepoUrlSheet({ visible, initialUrl, onConfirm, onClose }: {
             {err ? <Text style={{ color: t.red, fontSize: 12.5, marginTop: 8 }}>{err}</Text> : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
               <Pressable onPress={onClose} style={({ pressed }) => [{ flex: 1, paddingVertical: 13, borderRadius: 13, alignItems: 'center', backgroundColor: t.bg4 }, pressed && { opacity: 0.8 }]}>
-                <Text style={{ color: t.tx2, fontSize: 15, fontWeight: '600' }}>取消</Text>
+                <Text style={{ color: t.tx2, fontSize: 15, fontWeight: '600' }}>Cancel</Text>
               </Pressable>
               <Pressable onPress={confirm} style={({ pressed }) => [{ flex: 1, paddingVertical: 13, borderRadius: 13, alignItems: 'center', backgroundColor: t.ac }, pressed && { opacity: 0.85 }]}>
                 <Text style={{ color: t.acInk, fontSize: 15, fontWeight: '700' }}>Confirm</Text>
