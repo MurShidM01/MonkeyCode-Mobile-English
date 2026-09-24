@@ -36,19 +36,19 @@ type Cmd = { key: CmdKey; label: string; tone: 'ac' | 'neutral' | 'amber' | 'red
 type PendingAtt = { key: string; localUri: string; name: string; status: 'uploading' | 'done' | 'error'; url?: string };
 // 直接展示的常用指令（使用技能会打开技能Select面板）
 const DIRECT_COMMANDS: Cmd[] = [
-  { key: 'skill', label: '使用技能', tone: 'ac' },
+  { key: 'skill', label: 'Use skill', tone: 'ac' },
 ];
 // composer 上方的常用快捷方式：点一下直接把这句话发出去（和原来的「Continue」一样）。
 const QUICK_PROMPTS: { label: string; text: string }[] = [
   { label: 'Continue', text: 'Continue' },
-  { label: '你决定', text: '你决定' },
+  { label: 'You decide', text: 'You decide' },
   { label: 'Commit code', text: 'Commit code' },
 ];
 // 收进「⋯ 更多」里的低频/有破坏性的指令，避免误触
 const MORE_COMMANDS: Cmd[] = [
   { key: 'compact', label: 'Compact conversation', tone: 'neutral', icon: 'sparkle', desc: 'Compact context to free token space' },
-  { key: 'restart', label: 'Restart agent', tone: 'amber', icon: 'refresh', desc: 'Restart agent 并保留当前上下文' },
-  { key: 'reset', label: '重置Conversation', tone: 'red', icon: 'trash', desc: 'Clear context and restart agent' },
+  { key: 'restart', label: 'Restart agent', tone: 'amber', icon: 'refresh', desc: 'Restart agent and keep the current context' },
+  { key: 'reset', label: 'Reset conversation', tone: 'red', icon: 'trash', desc: 'Clear context and restart agent' },
 ];
 function cmdTone(tone: string, t: Theme): { bg: string; color: string } {
   switch (tone) {
@@ -222,7 +222,7 @@ export default function TaskDetailScreen() {
         setHasMore(!!rounds.has_more && !!rounds.next_cursor);
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败');
+      setError(e instanceof ApiError ? e.message : 'Failed to load');
     } finally { setLoading(false); }
   }, [id]);
 
@@ -557,7 +557,7 @@ export default function TaskDetailScreen() {
   const canSwitchModel = !!interactive && !roundRunning && models.length > 0;
   const anyUploading = attachments.some((a) => a.status === 'uploading');
   const canSend = !!input.trim() || attachments.some((a) => a.status === 'done');
-  const title = task ? taskDisplayName(task, 'Task详情') : 'Task详情';
+  const title = task ? taskDisplayName(task, 'Task details') : 'Task详情';
 
   // 上下文用量是“事件驱动”的：仅当收到 usage_update（size>0）时才更新；新一轮会重建 handler 把
   // contextUsage 清空，所以这里把最近一次有效用量持久化在组件里，发消息/换轮时不再闪回空白。
@@ -617,7 +617,7 @@ export default function TaskDetailScreen() {
     </Glass>
   );
 
-  if (loading) return <View style={{ flex: 1, backgroundColor: t.bg }}><LoadingView label="加载Task详情…" /></View>;
+  if (loading) return <View style={{ flex: 1, backgroundColor: t.bg }}><LoadingView label="Loading task details…" /></View>;
   if (error && !task) return <View style={{ flex: 1, backgroundColor: t.bg }}><EmptyView title="加载失败" subtitle={error} icon="alert" /></View>;
 
   return (
@@ -628,14 +628,14 @@ export default function TaskDetailScreen() {
             {startCond?.failed
               ? <Icons.alert size={30} color={t.red} sw={2.2} />
               : <Spinner size={30} color={t.ac} sw={2.4} />}
-            <Text style={{ color: startCond?.failed ? t.red : t.tx, fontSize: 17, fontWeight: '600' }}>{startCond?.label ?? 'Task正在启动…'}</Text>
+            <Text style={{ color: startCond?.failed ? t.red : t.tx, fontSize: 17, fontWeight: '600' }}>{startCond?.label ?? 'Task is starting…'}</Text>
             <Text style={{ color: t.tx2, fontSize: 13, textAlign: 'center', lineHeight: 19 }}>
-              {startCond?.message || '正在准备云开发环境，启动完成后即可开始Conversation'}
+              {startCond?.message || 'Preparing the cloud development environment. You can start the conversation when it is ready.'}
             </Text>
           </View>
         ) : messages.length === 0 ? (
           interactive ? <View style={{ flex: 1, paddingTop: headerH }}><LoadingView label="连接Conversation中…" /></View>
-            : <View style={{ flex: 1, paddingTop: headerH }}><EmptyView title="暂无Conversation" subtitle="该Task没有可展示的Conversation记录" /></View>
+            : <View style={{ flex: 1, paddingTop: headerH }}><EmptyView title="No conversation" subtitle="This task has no conversation history to display" /></View>
         ) : (
           <FlatList
             ref={listRef}
@@ -674,7 +674,7 @@ export default function TaskDetailScreen() {
               <Icons.globe size={16} color={t.acTx} sw={2} />
               <Text style={{ color: t.acTx, fontSize: 13, fontWeight: '700' }}>在线预览</Text>
               <Text numberOfLines={1} style={{ flex: 1, color: t.tx3, fontSize: 12, fontFamily: 'monospace' }}>
-                {previewPorts.length === 1 ? `Port ${previewPorts[0].port}` : `端口 ${previewPorts.slice(0, 2).map((p) => p.port).join(' · ')}${previewPorts.length > 2 ? ` +${previewPorts.length - 2}` : ''}`}
+                {previewPorts.length === 1 ? `Port ${previewPorts[0].port}` : `Port ${previewPorts.slice(0, 2).map((p) => p.port).join(' · ')}${previewPorts.length > 2 ? ` +${previewPorts.length - 2}` : ''}`}
               </Text>
               {previewPorts.length > 1 ? <View style={{ minWidth: 18, height: 18, borderRadius: 99, backgroundColor: t.ac, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 }}><Text style={{ fontSize: 10.5, fontWeight: '800', color: t.acInk }}>{previewPorts.length}</Text></View> : null}
               <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '700' }}>{previewPorts.length > 1 ? 'Select' : previewMinimized ? 'Expand' : 'Open'}</Text>
@@ -687,7 +687,7 @@ export default function TaskDetailScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 9, paddingVertical: 2 }}>
               <Spinner size={14} color={t.acTx} sw={2.2} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>AI 正在处理</Text>
+                <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>AI is processing</Text>
                 <TypingDots color={t.acTx} />
               </View>
               {roundStartMs ? <RunTimer startMs={roundStartMs} style={{ marginLeft: 'auto', color: t.tx3 }} /> : null}
@@ -699,7 +699,7 @@ export default function TaskDetailScreen() {
                 : <View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: t.red }} />}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                 <Text style={{ color: t.acTx, fontSize: 12.5, fontWeight: '600' }}>
-                  {speech.status === 'connecting' ? 'Connecting to voice service' : speech.status === 'stopping' ? 'Transcribing' : '正在录音，点击结束'}
+                  {speech.status === 'connecting' ? 'Connecting to voice service' : speech.status === 'stopping' ? 'Transcribing' : 'Recording. Tap to stop'}
                 </Text>
                 {speech.status === 'connecting' || speech.status === 'stopping' ? <TypingDots color={t.acTx} /> : null}
               </View>
@@ -727,7 +727,7 @@ export default function TaskDetailScreen() {
               <Pressable disabled={!!restartBusy} onPress={() => setMoreOpen(true)}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 9, backgroundColor: t.bg4, marginLeft: 8, opacity: restartBusy ? 0.5 : 1 }}>
                 {restartBusy ? <Spinner size={13} color={t.tx2} sw={2} /> : <Icons.more size={17} color={t.tx2} sw={2} />}
-                <Text style={{ color: t.tx2, fontSize: 12.5, fontWeight: '600' }}>更多</Text>
+                <Text style={{ color: t.tx2, fontSize: 12.5, fontWeight: '600' }}>More</Text>
               </Pressable>
             </View>
           )}
@@ -760,7 +760,7 @@ export default function TaskDetailScreen() {
               </Pressable>
               <TextInput value={input} onChangeText={setUserInput} editable={!roundRunning && !sending && !speech.active}
                 onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)}
-                placeholder={speech.active ? 'Speak…' : roundRunning ? '' : 'Continue这个Task…'} placeholderTextColor={speech.active ? t.acTx : t.tx3}
+                placeholder={speech.active ? 'Speak…' : roundRunning ? '' : 'Continue this task…'} placeholderTextColor={speech.active ? t.acTx : t.tx3}
                 multiline style={{ flex: 1, color: t.tx, fontSize: 15, paddingVertical: 11, maxHeight: 120 }} />
               <MicButton status={speech.status} active={speech.active} onPress={onMic} disabled={roundRunning} idleColor={t.tx3} />
             </View>
@@ -774,11 +774,11 @@ export default function TaskDetailScreen() {
         </Glass>
       ) : starting ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg2 }}>
-          <Spinner size={15} color={t.ac} sw={2.2} /><Text style={{ color: t.tx2, fontSize: 13 }}>Task正在启动，请稍候</Text><TypingDots color={t.tx2} />
+          <Spinner size={15} color={t.ac} sw={2.2} /><Text style={{ color: t.tx2, fontSize: 13 }}>Task is starting. Please wait</Text><TypingDots color={t.tx2} />
         </View>
       ) : (
         <View style={{ alignItems: 'center', paddingVertical: 14, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderColor: t.line, backgroundColor: t.bg2 }}>
-          <Text style={{ color: t.tx3, fontSize: 13 }}>Task已结束，无法ContinueConversation</Text>
+          <Text style={{ color: t.tx3, fontSize: 13 }}>Task has ended and cannot continue the conversation</Text>
         </View>
       )}
 
@@ -796,7 +796,7 @@ export default function TaskDetailScreen() {
         <Scrim onPress={() => setMoreOpen(false)} />
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.bg2, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.line2, paddingBottom: insets.bottom + 14, ...t.shLift }}>
           <View style={{ width: 38, height: 4, borderRadius: 99, backgroundColor: t.line2, alignSelf: 'center', marginTop: 10, marginBottom: 8 }} />
-          <Text style={{ paddingHorizontal: 18, paddingBottom: 6, fontSize: 17, fontWeight: '700', color: t.tx }}>更多操作</Text>
+          <Text style={{ paddingHorizontal: 18, paddingBottom: 6, fontSize: 17, fontWeight: '700', color: t.tx }}>More actions</Text>
           <View style={{ paddingHorizontal: 12, paddingTop: 2 }}>
             {MORE_COMMANDS.map((c) => {
               const tone = cmdTone(c.tone, t);
