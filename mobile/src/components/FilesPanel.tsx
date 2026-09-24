@@ -534,7 +534,7 @@ export function FilesPanel({ visible, onClose, control, initialChanges, vmId }: 
             changesLoading && changes.length === 0 ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={t.ac} /></View>
             ) : changes.length === 0 ? (
-              <Empty icon={<Icons.check size={26} color={t.tx3} sw={1.9} />} label="暂无Files改动" t={t} />
+              <Empty icon={<Icons.check size={26} color={t.tx3} sw={1.9} />} label="No file changes" t={t} />
             ) : (
               <ScrollView contentContainerStyle={{ padding: 14, gap: 8 }}>
                 {changes.map((c) => {
