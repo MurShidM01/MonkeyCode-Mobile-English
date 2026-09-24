@@ -1,5 +1,5 @@
 /**
- * 我的模型 —— 用户自有大模型管理（对齐 Web 用户控制台「绑定 AI 大模型」）。
+ * My models —— 用户自有大模型管理（对齐 Web 用户控制台「绑定 AI 大模型」）。
  * 列表展示 owner.type === 'private' 的模型；点击行进入 /model-form 查看与编辑，
  * 添加走 /model-form（无 id），删除需确认。
  */
@@ -51,7 +51,7 @@ export default function MyModelsScreen() {
       setModels(all.filter((m) => m.id && m.owner?.type === 'private'));
       setError('');
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '加载失败，请重试');
+      setError(e instanceof ApiError ? e.message : 'Failed to load，请重试');
     }
   }, []);
 
@@ -71,7 +71,7 @@ export default function MyModelsScreen() {
 
   const onDelete = useCallback((m: Model) => {
     const name = modelLabel(m) || '该模型';
-    Alert.alert('删除模型', `确定要删除「${name}」吗？删除后使用该模型的任务需改用其它模型。`, [
+    Alert.alert('Delete model', `Delete “${name}”? Tasks using this model will need another model.`, [
       { text: '取消', style: 'cancel' },
       {
         text: '删除',
@@ -80,9 +80,9 @@ export default function MyModelsScreen() {
           try {
             await deleteModel(m.id!);
             setModels((list) => list.filter((x) => x.id !== m.id));
-            setError(''); // 残留的旧刷新错误不应在删空列表后冒出「加载失败」空态
+            setError(''); // 残留的旧刷新错误不应在删空列表后冒出「Failed to load」空态
           } catch (e) {
-            Alert.alert('删除失败', e instanceof ApiError ? e.message : '请稍后重试');
+            Alert.alert('Delete failed', e instanceof ApiError ? e.message : '请稍后重试');
           }
         },
       },
@@ -92,7 +92,7 @@ export default function MyModelsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {loading ? (
-        <LoadingView label="加载模型中…" />
+        <LoadingView label="Loading models…" />
       ) : (
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + 64, paddingHorizontal: spacing.pad, paddingBottom: insets.bottom + 96 }}
@@ -100,13 +100,13 @@ export default function MyModelsScreen() {
         >
           {models.length === 0 && error ? (
             // 仅在没有可展示数据时才占满错误态；刷新失败但已有列表时保留列表
-            <EmptyView icon="alert" title="加载失败" subtitle={`${error}\n下拉可重试`} />
+            <EmptyView icon="alert" title="Failed to load" subtitle={`${error}\nPull down to retry`} />
           ) : models.length === 0 ? (
-            <EmptyView title="还没有自定义模型" subtitle={'绑定你自己的大模型 API\n即可在发起任务时选用'} />
+            <EmptyView title="No custom models yet" subtitle={'Connect your own AI model API\nthen select it when starting a task'} />
           ) : (
             <>
               {error ? (
-                <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 12, marginBottom: 10 }}>刷新失败：{error}</Text>
+                <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 12, marginBottom: 10 }}>Refresh failed:{error}</Text>
               ) : null}
               <Card style={{ paddingHorizontal: 15, paddingVertical: 3 }}>
                 {models.map((m, i) => (
@@ -118,9 +118,9 @@ export default function MyModelsScreen() {
         </ScrollView>
       )}
 
-      <GlassNav title="我的模型" onBack={() => router.back()} />
+      <GlassNav title="My models" onBack={() => router.back()} />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: t.bg }}>
-        <PrimaryButton block label="添加模型" icon="plus" onPress={() => router.push('/model-form')} />
+        <PrimaryButton block label="Add model" icon="plus" onPress={() => router.push('/model-form')} />
       </View>
     </View>
   );
