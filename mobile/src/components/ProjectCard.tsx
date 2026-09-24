@@ -28,7 +28,7 @@ export function ProjectCard({ project, onPress }: { project: Project; onPress?: 
         <ProjIcon lit={active > 0} t={t} platform={project.platform} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text numberOfLines={1} style={{ fontSize: 16.5, fontWeight: '700', letterSpacing: -0.2, color: t.tx, flexShrink: 1 }}>{project.name || repo || '未命名项目'}</Text>
+            <Text numberOfLines={1} style={{ fontSize: 16.5, fontWeight: '700', letterSpacing: -0.2, color: t.tx, flexShrink: 1 }}>{project.name || repo || 'Untitled project'}</Text>
             {active > 0 ? <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: t.ac }} /> : null}
           </View>
           {repo ? (
@@ -42,9 +42,9 @@ export function ProjectCard({ project, onPress }: { project: Project; onPress?: 
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 13 }}>
         {active > 0 ? (
-          <Chip color={t.acTx} bg={t.acGhost}><Text style={{ color: t.acTx, fontSize: 12, fontWeight: '500' }}>{active} 个进行中</Text></Chip>
+          <Chip color={t.acTx} bg={t.acGhost}><Text style={{ color: t.acTx, fontSize: 12, fontWeight: '500' }}>{active}  running</Text></Chip>
         ) : (
-          <Chip><Text style={{ color: t.tx3, fontSize: 12, fontWeight: '500' }}>暂无进行中</Text></Chip>
+          <Chip><Text style={{ color: t.tx3, fontSize: 12, fontWeight: '500' }}>No active tasks</Text></Chip>
         )}
         <Text style={{ marginLeft: 'auto', color: t.tx3, fontSize: 12 }}>{fromNow(project.updated_at || project.created_at)}</Text>
       </View>
