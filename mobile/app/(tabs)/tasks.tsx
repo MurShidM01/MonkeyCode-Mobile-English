@@ -83,24 +83,24 @@ export default function TasksScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Stop', style: 'destructive', onPress: async () => {
         try { await stopTask(task.id); removeTask(task.id); }
-        catch (e) { Alert.alert('Failed to stop task', e instanceof ApiError ? e.message : '请Later重试'); }
+        catch (e) { Alert.alert('Failed to stop task', e instanceof ApiError ? e.message : 'Please try again later'); }
       } },
     ]);
   }, [removeTask]);
 
   const confirmDelete = useCallback((task: ProjectTask) => {
-    Alert.alert('删除Tasks', `Delete “${taskDisplayName(task)}”? This action cannot be undone.`, [
+    Alert.alert('Delete task', `Delete “${taskDisplayName(task)}”? This action cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try { await deleteTask(task.id); removeTask(task.id); }
-        catch (e) { Alert.alert('删除失败', e instanceof ApiError ? e.message : '请Later重试'); }
+        catch (e) { Alert.alert('Delete failed', e instanceof ApiError ? e.message : 'Please try again later'); }
       } },
     ]);
   }, [removeTask]);
 
   const Header = (
     <View>
-      <BigTitle title="智能Tasks" />
+      <BigTitle title="Tasks" />
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: spacing.pad, paddingTop: 12, paddingBottom: 8 }}>
         {FILTERS.map((f) => {
           const on = filter === f.k;
@@ -121,9 +121,9 @@ export default function TasksScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const running = item.status === 'pending' || item.status === 'processing';
-          const del = { key: 'delete', label: '删除', icon: 'trash', color: '#fff', bg: t.red, onPress: () => confirmDelete(item) };
+          const del = { key: 'delete', label: 'Delete', icon: 'trash', color: '#fff', bg: t.red, onPress: () => confirmDelete(item) };
           const actions = running
-            ? [{ key: 'stop', label: '终止', icon: 'stop', color: '#fff', bg: t.amber, onPress: () => confirmStop(item) }, del]
+            ? [{ key: 'stop', label: 'Stop', icon: 'stop', color: '#fff', bg: t.amber, onPress: () => confirmStop(item) }, del]
             : [del];
           return (
             <View style={{ paddingHorizontal: spacing.pad }}>
@@ -146,14 +146,14 @@ export default function TasksScreen() {
           fetching ? (
             <View style={{ paddingTop: 60 }}><LoadingView label="Loading tasks…" /></View>
           ) : error ? (
-            <View style={{ paddingTop: 40 }}><EmptyView title="加载失败" subtitle={error} icon="alert" /></View>
+            <View style={{ paddingTop: 40 }}><EmptyView title="Failed to load" subtitle={error} icon="alert" /></View>
           ) : (
             <View style={{ paddingTop: 40 }}><EmptyView title={filter === 'running' ? 'No running tasks' : 'No finished tasks yet'} subtitle={filter === 'running' ? 'Tap + to start an AI task' : undefined} /></View>
           )
         }
         ListFooterComponent={
           loadingMore ? <View style={{ paddingVertical: 20, alignItems: 'center' }}><ActivityIndicator color={t.ac} /></View>
-            : !hasMore && tasks.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>没有更多了</Text>
+            : !hasMore && tasks.length > 0 ? <Text style={{ textAlign: 'center', color: t.tx3, fontSize: 11, paddingVertical: 18 }}>No more</Text
             : null
         }
       />
