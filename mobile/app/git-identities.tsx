@@ -77,7 +77,7 @@ export default function GitIdentitiesScreen() {
   const onDelete = useCallback((identity: GitIdentity) => {
     const name = identity.remark?.trim() || identity.username || gitPlatformLabel(identity.platform);
     Alert.alert('Remove account', `Remove “${name}”? Projects using this account will no longer be able to pull or commit code.`, [
-      { text: '取消', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
         style: 'destructive',
@@ -88,7 +88,7 @@ export default function GitIdentitiesScreen() {
             setError('');
           } catch (e) {
             // 后端 409：被项目占用
-            Alert.alert('Unable to remove', e instanceof ApiError ? e.message : '请稍后重试');
+            Alert.alert('Unable to remove', e instanceof ApiError ? e.message : 'Please try again later');
           }
         },
       },
