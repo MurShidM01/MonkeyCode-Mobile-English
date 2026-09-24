@@ -557,7 +557,7 @@ export default function TaskDetailScreen() {
   const canSwitchModel = !!interactive && !roundRunning && models.length > 0;
   const anyUploading = attachments.some((a) => a.status === 'uploading');
   const canSend = !!input.trim() || attachments.some((a) => a.status === 'done');
-  const title = task ? taskDisplayName(task, 'Task details') : 'Task详情';
+  const title = task ? taskDisplayName(task, 'Task details') : 'Task details';
 
   // 上下文用量是“事件驱动”的：仅当收到 usage_update（size>0）时才更新；新一轮会重建 handler 把
   // contextUsage 清空，所以这里把最近一次有效用量持久化在组件里，发消息/换轮时不再闪回空白。
