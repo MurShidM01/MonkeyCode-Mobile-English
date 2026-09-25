@@ -22,7 +22,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: mobile-${{ github.ref }}
@@ -139,24 +138,3 @@ jobs:
           else
             gh release create "${RELEASE_TAG}" "${apk}"               --repo "${GITHUB_REPOSITORY}"               --target "${GITHUB_SHA}"               --title "MonkeyCode Mobile ${RELEASE_TAG}"               --notes-file release-notes.md
           fi
-
-  cleanup-legacy-debug:
-    name: Remove legacy debug APK artifacts
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'remove legacy debug')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delete legacy debug GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete debug             --repo "${GITHUB_REPOSITORY}"             --yes             --cleanup-tag || true
-      - name: Delete all legacy debug workflow artifacts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          ids="$(gh api --paginate             "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100"             --jq '.artifacts[] | select(.name | startswith("debug-app-")) | .id')"
-          while read -r id; do
-            [ -z "$id" ] && continue
-            gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
-          done <<< "$ids"
