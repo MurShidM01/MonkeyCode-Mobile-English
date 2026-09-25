@@ -7,17 +7,22 @@ on:
       - 'v*'
     paths:
       - 'mobile/**'
-      - 'mobile/android/**'
       - '.github/workflows/mobile.yml'
   pull_request:
     paths:
       - 'mobile/**'
-      - 'android/**'
       - '.github/workflows/mobile.yml'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag, for example v260608 or v1.2.3"
+        required: true
+        default: "v260608"
+        type: string
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: mobile-${{ github.ref }}
@@ -47,11 +52,13 @@ jobs:
         working-directory: .
         run: node mobile/scripts/check-mobile-english-ui.mjs
 
-  android-debug:
-    name: Build debug APK
+  android-release:
+    name: Build release APK
     needs: validate
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
     defaults:
       run:
         working-directory: mobile
@@ -62,11 +69,9 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: mobile/package-lock.json
-      - run: npm ci
-      - name: Sync Android app version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Sync Android app version from release tag
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -86,123 +91,72 @@ jobs:
           NODE
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive --no-install
-      - name: Assemble debug APK
-        working-directory: mobile/android
-        run: ./gradlew assembleDebug --no-daemon
-      - name: Publish debug-app.apk artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-app-${{ github.sha }}
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
-          if-no-files-found: error
-
-  android-release:
-    name: Build release APK
-    needs: validate
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
-      - run: npm ci
-      - name: Sync Android app version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          const tag = process.env.RELEASE_TAG;
-          const version = tag.replace(/^v/, '');
-          if (!/^\d+(?:\.\d+){0,2}$/.test(version)) {
-            throw new Error('Release tag must use v<version>, for example v260608 or v1.2.3');
-          }
-          const appPath = 'app.json';
-          const app = JSON.parse(fs.readFileSync(appPath, 'utf8'));
-          app.expo.version = version;
-          if (version.split('.').length === 1 && /^\d+$/.test(version)) {
-            app.expo.android.versionCode = Number(version);
-          }
-          fs.writeFileSync(appPath, JSON.stringify(app, null, 2) + '\n');
-          NODE
-      - name: Generate Android project
-        run: npx expo prebuild --platform android --non-interactive --no-install
       - name: Assemble release APK
         working-directory: mobile/android
         run: ./gradlew assembleRelease --no-daemon
       - name: Rename APK
         working-directory: mobile
-        run: cp android/app/build/outputs/apk/release/app-release.apk "monkeycode-${GITHUB_REF_NAME}.apk"
+        run: cp android/app/build/outputs/apk/release/app-release.apk "monkeycode-${RELEASE_TAG}.apk"
       - name: Publish release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ github.ref_name }}
-          path: mobile/monkeycode-${{ github.ref_name }}.apk
+          name: android-apk-${{ env.RELEASE_TAG }}
+          path: mobile/monkeycode-${{ env.RELEASE_TAG }}.apk
+          retention-days: 14
           if-no-files-found: error
 
-  publish-debug-release:
-    name: Publish latest debug APK
-    needs: android-debug
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  publish-release:
+    name: Publish GitHub Release
+    needs: android-release
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
     steps:
-      - name: Download debug APK
+      - name: Download release APK
         uses: actions/download-artifact@v4
         with:
-          name: debug-app-${{ github.sha }}
+          name: android-apk-${{ env.RELEASE_TAG }}
           path: release
-      - name: Rename APK
-        run: cp release/app-debug.apk release/debug-app.apk
-      - name: Publish latest debug prerelease
+      - name: Generate release notes
+        run: |
+          cat > release-notes.md <<EOF
+          ## MonkeyCode Mobile ${RELEASE_TAG}
+
+          Built automatically from ${RELEASE_TAG}.
+
+          ### Android
+          - `monkeycode-${RELEASE_TAG}.apk`: release APK
+          EOF
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if gh release view debug --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-            gh release upload debug release/debug-app.apk --repo "${GITHUB_REPOSITORY}" --clobber
+          apk="release/monkeycode-${RELEASE_TAG}.apk"
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" "${apk}" --repo "${GITHUB_REPOSITORY}" --clobber
           else
-            gh release create debug release/debug-app.apk --repo "${GITHUB_REPOSITORY}" --title "MonkeyCode Mobile Debug" --notes "Latest debug APK from the main branch. Updated automatically after mobile changes." --prerelease
+            gh release create "${RELEASE_TAG}" "${apk}"               --repo "${GITHUB_REPOSITORY}"               --target "${GITHUB_SHA}"               --title "MonkeyCode Mobile ${RELEASE_TAG}"               --notes-file release-notes.md
           fi
 
-  publish-release:
-    name: Publish GitHub Release
-    needs: [android-debug, android-release]
-    if: startsWith(github.ref, 'refs/tags/v')
+  cleanup-legacy-debug:
+    name: Remove legacy debug APK artifacts
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'remove legacy debug')
     runs-on: ubuntu-latest
     steps:
-      - name: Download debug APK
-        uses: actions/download-artifact@v4
-        with:
-          name: debug-app-${{ github.sha }}
-          path: release
-      - name: Download release APK
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk-${{ github.ref_name }}
-          path: release
-      - name: Rename debug asset
-        run: mv release/app-debug.apk "release/debug-app.apk"
-      - name: Generate release notes
-        run: |
-          cat > release-notes.md <<EOF
-          ## MonkeyCode Mobile ${GITHUB_REF_NAME}
-
-          Built automatically from Git tag `${GITHUB_REF_NAME}`.
-
-          ### Android
-          - `debug-app.apk`: debug build
-          - `monkeycode-${GITHUB_REF_NAME}.apk`: release APK
-          EOF
-      - name: Create GitHub Release
+      - name: Delete legacy debug GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" release/*             --repo "${GITHUB_REPOSITORY}"             --title "MonkeyCode Mobile ${GITHUB_REF_NAME}"             --notes-file release-notes.md             --verify-tag
+          gh release delete debug             --repo "${GITHUB_REPOSITORY}"             --yes             --cleanup-tag || true
+      - name: Delete all legacy debug workflow artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ids="$(gh api --paginate             "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100"             --jq '.artifacts[] | select(.name | startswith("debug-app-")) | .id')"
+          while read -r id; do
+            [ -z "$id" ] && continue
+            gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
+          done <<< "$ids"
